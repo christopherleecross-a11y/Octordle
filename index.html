@@ -15,8 +15,8 @@
         const count = opts.particleCount || 150;
         const colors = ['#538d4e','#b59f3b','#e74c3c','#3498db','#f39c12','#9b59b6','#1abc9c','#e67e22'];
         const particles = Array.from({length: count}, () => ({
-            x: canvas.width * (opts.origin ? (1 - opts.origin.y) : 0.5),
-            y: canvas.height * (opts.origin ? opts.origin.y : 0.6),
+            x: canvas.width * (opts.origin && opts.origin.x != null ? opts.origin.x : 0.5),
+            y: canvas.height * (opts.origin && opts.origin.y != null ? opts.origin.y : 0.6),
             r: Math.random() * 8 + 4,
             d: Math.random() * count,
             color: colors[Math.floor(Math.random() * colors.length)],
@@ -55,6 +55,21 @@
         }
         draw();
     }
+    let _fwActive = false;
+    function startFireworks() {
+        if (_fwActive) return;
+        _fwActive = true;
+        (function loop() {
+            if (!_fwActive) return;
+            confetti({
+                particleCount: 50 + Math.floor(Math.random() * 50),
+                spread: 60 + Math.random() * 40,
+                origin: { x: 0.1 + Math.random() * 0.8, y: 0.3 + Math.random() * 0.4 }
+            });
+            setTimeout(loop, 500 + Math.random() * 600);
+        })();
+    }
+    function stopFireworks() { _fwActive = false; }
     </script>
     <style>
         :root {
@@ -123,17 +138,102 @@
         .dist-bar.highlight { background: #538d4e; }
         .stats-close { background: transparent; color: #888; border: none; font-size: 1.2rem; cursor: pointer; position: absolute; top: 12px; right: 16px; }
         .stats-content-wrap { position: relative; }
+        /* === Mobile responsive === */
+        @media (max-width: 800px) {
+            #game-view { grid-template-columns: repeat(2, 1fr) !important; gap: 6px 10px; padding: 6px; max-width: 100%; margin-bottom: 240px; }
+            .tile { font-size: 0.7rem; }
+            .board-container { padding: 2px; }
+            #bottom-container { flex-direction: column; padding: 6px 0; }
+            #tracker { margin-left: 0; margin-top: 8px; padding-left: 0; border-left: none; border-top: 1px solid #3a3a3c; padding-top: 8px; grid-template-columns: repeat(8, 1fr); }
+            .key { width: 30px; height: 48px; margin: 0 1.5px; font-size: 0.7rem; padding: 4px 0 3px 0; }
+            .key.large { width: 44px; font-size: 0.65rem; height: 48px; }
+            .dot-grid { width: 22px; height: 10px; gap: 1px; }
+            header { font-size: 0.85rem; gap: 6px; flex-wrap: wrap; padding: 6px 4px; }
+            #mode-select, #stats-btn, .icon-btn { font-size: 0.7rem; padding: 2px 6px; }
+        }
+        @media (max-width: 420px) {
+            .key { width: 26px; height: 42px; margin: 0 1px; font-size: 0.65rem; }
+            .key.large { width: 36px; font-size: 0.55rem; height: 42px; }
+            .dot-grid { width: 18px; height: 9px; }
+            .tile { font-size: 0.6rem; }
+            .tracker-item { width: 22px; height: 22px; font-size: 0.7rem; }
+        }
+        /* === Tile flip animation === */
+        .tile.flipping { animation: flip 0.6s ease-in-out forwards; }
+        @keyframes flip {
+            0%   { transform: rotateX(0); }
+            45%  { transform: rotateX(90deg); }
+            55%  { transform: rotateX(90deg); }
+            100% { transform: rotateX(0); }
+        }
+        /* === Active row === */
+        .row.active .tile:not([data-state]) { border-color: #5a5a5c; border-width: 1.5px; }
+        /* === Color-blind palette === */
+        body.colorblind .tile[data-state="correct"],
+        body.colorblind .key[data-state="correct"] { background: #3b82f6 !important; border-color: #3b82f6 !important; }
+        body.colorblind .dot[data-state="correct"] { background: #3b82f6 !important; }
+        body.colorblind .tile[data-state="present"],
+        body.colorblind .key[data-state="present"] { background: #f59e0b !important; border-color: #f59e0b !important; }
+        body.colorblind .dot[data-state="present"] { background: #f59e0b !important; }
+        body.colorblind .tracker-item.solved { background: #3b82f6 !important; border-color: #3b82f6 !important; }
+        /* === Icon buttons === */
+        .icon-btn { background: #2a2a2c; color: #fff; border: 1px solid #3a3a3c; border-radius: 4px; padding: 3px 10px; font-size: 0.75rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
+        .icon-btn:hover { background: #3a3a3c; }
+        /* === Share button === */
+        .share-btn { background: #4a90e2; color: #fff; border: none; padding: 10px 22px; font-size: 1rem; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 10px; margin-right: 8px; }
+        .share-btn:hover { background: #5fa0f0; }
+        /* === Intro modal === */
+        #intro-modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.92); display:none; justify-content: center; align-items: center; z-index: 4000; padding: 16px; }
+        .intro-content { background: #1a1a1b; padding: 20px 25px; border-radius: 10px; border: 1px solid #3a3a3c; color: #fff; max-width: 520px; width: 100%; text-align: left; max-height: 90vh; overflow-y: auto; }
+        .intro-content h2 { margin: 0 0 12px 0; letter-spacing: 2px; font-size: 1.1rem; text-align: center; }
+        .intro-content h3 { margin: 16px 0 6px; font-size: 0.85rem; letter-spacing: 1px; color: #ccc; }
+        .intro-content p { font-size: 0.85rem; line-height: 1.45; margin: 6px 0; color: #ddd; }
+        .intro-example { display: flex; gap: 3px; margin: 6px 0 10px; }
+        .intro-tile { width: 28px; height: 28px; border: 1px solid #3a3a3c; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem; color: #fff; background: #121213; }
+        .intro-tile.correct { background: #538d4e; border-color: #538d4e; }
+        .intro-tile.present { background: #b59f3b; border-color: #b59f3b; }
+        .intro-tile.absent { background: #3a3a3c; border-color: #3a3a3c; }
+        .intro-dotex { display: inline-flex; gap: 2px; vertical-align: middle; margin: 0 4px; }
+        .intro-dotex .dot { width: 6px; height: 6px; border-radius: 1px; display: inline-block; }
+        .intro-dotex .dot.c { background: #538d4e; }
+        .intro-dotex .dot.p { background: #b59f3b; }
+        .intro-dotex .dot.a { background: #505052; }
+        .intro-dotex .dot.u { background: #2a2a2c; }
+        /* === Settings modal === */
+        #settings-modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:none; justify-content: center; align-items: center; z-index: 3500; }
+        .settings-content { background: #1a1a1b; padding: 22px 26px; border-radius: 10px; border: 1px solid #3a3a3c; color: #fff; min-width: 280px; max-width: 380px; width: 90%; position: relative; }
+        .settings-content h2 { margin: 0 0 12px; letter-spacing: 2px; font-size: 1rem; text-align: center; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px solid #2a2a2c; gap: 12px; }
+        .setting-row:first-of-type { border-top: none; padding-top: 4px; }
+        .setting-info { flex: 1; }
+        .setting-label { font-size: 0.85rem; font-weight: bold; }
+        .setting-desc { font-size: 0.7rem; color: #888; margin-top: 2px; }
+        .toggle { position: relative; width: 44px; height: 22px; background: #3a3a3c; border-radius: 11px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+        .toggle.on { background: #538d4e; }
+        body.colorblind .toggle.on { background: #3b82f6; }
+        .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left 0.2s; }
+        .toggle.on::after { left: 24px; }
+        /* === Toast === */
+        #toast { position: fixed; top: 18%; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 10px 18px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; z-index: 5000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        /* === Screen reader only === */
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        /* === Daily complete banner === */
+        .daily-banner { background: #2a2a2c; border: 1px solid #3a3a3c; padding: 8px 12px; border-radius: 6px; margin: 10px 0; font-size: 0.85rem; color: #ccc; text-align: center; }
+
     </style>
 </head>
 <body>
 <header>
     OCTORDLE
-    <select id="mode-select">
+    <select id="mode-select" aria-label="Game mode">
         <option value="classic">CLASSIC</option>
         <option value="chill">CHILL</option>
         <option value="extreme" selected>EXTREME</option>
+        <option value="daily">DAILY</option>
     </select>
     <span id="guess-counter" style="font-size:0.8rem;opacity:0.7;"></span>
+    <button class="icon-btn" onclick="openIntro()" aria-label="How to play">HELP</button>
+    <button class="icon-btn" onclick="openSettings()" aria-label="Settings">⚙</button>
     <button id="stats-btn" onclick="openStats()">STATS</button>
 </header>
 <div id="game-view"></div>
@@ -145,10 +245,10 @@
     </div>
     <div id="tracker"></div>
 </div>
-<div id="stats-modal" onclick="if(event.target===this)closeStats()">
+<div id="stats-modal" role="dialog" aria-modal="true" aria-labelledby="stats-title" onclick="if(event.target===this)closeStats()">
     <div class="stats-content stats-content-wrap">
         <button class="stats-close" onclick="closeStats()">✕</button>
-        <h2>STATISTICS</h2>
+        <h2 id="stats-title">STATISTICS</h2>
         <div class="stats-tabs">
             <button class="stats-tab" onclick="switchStatsTab('classic')">CLASSIC</button>
             <button class="stats-tab" onclick="switchStatsTab('chill')">CHILL</button>
@@ -164,18 +264,23 @@
         <div id="dist-bars"></div>
     </div>
 </div>
-<div id="modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:2000;">
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:2000;">
     <div class="modal-content">
         <h2 id="modal-title" style="color:#ffffff;"></h2>
+        <div id="daily-complete-msg" style="display:none;color:#aaa;font-size:0.85rem;margin:8px 0;">Come back tomorrow for a new daily challenge.</div>
         <div id="answers-container" style="display:none;">
             <p><strong>Missed Words:</strong></p>
             <div class="ans-list" id="ans-list"></div>
         </div>
-        <button class="play-btn" onclick="location.reload()">PLAY AGAIN</button>
+        <div style="margin-top:15px;">
+            <button class="share-btn" id="share-btn" onclick="shareResults()">SHARE</button>
+            <button class="play-btn" id="play-again-btn" onclick="stopFireworks();handlePlayAgain()">PLAY AGAIN</button>
+        </div>
     </div>
 </div>
 <script>
-const MODE_GUESSES = { classic: 13, chill: 16, extreme: 12 };
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+const MODE_GUESSES = { classic: 13, chill: 16, extreme: 12, daily: 12 };
 const modeSelect = document.getElementById('mode-select');
 // Restore previously chosen mode (falls back to the HTML default if nothing saved)
 try {
@@ -193,15 +298,75 @@ modeSelect.addEventListener('change', () => {
 });
 const WORD_POOL = ["ABACK","ABASE","ABATE","ABBEY","ABBOT","ABHOR","ABIDE","ABLED","ABODE","ABORT","ABOUT","ABOVE","ABUSE","ABYSS","ACORN","ACRID","ACTOR","ACUTE","ADAGE","ADAPT","ADEPT","ADMIN","ADMIT","ADOBE","ADOPT","ADORE","ADORN","ADULT","AFFIX","AFIRE","AFOOT","AFOUL","AFTER","AGAIN","AGAPE","AGATE","AGENT","AGILE","AGING","AGLOW","AGONY","AGORA","AGREE","AHEAD","AIDER","AISLE","ALARM","ALBUM","ALERT","ALGAE","ALIBI","ALIEN","ALIGN","ALIKE","ALIVE","ALLAY","ALLEY","ALLOT","ALLOW","ALLOY","ALOFT","ALONE","ALONG","ALOOF","ALOUD","ALPHA","ALTAR","ALTER","AMASS","AMAZE","AMBER","AMBLE","AMEND","AMISS","AMITY","AMONG","AMPLE","AMPLY","AMUSE","ANGEL","ANGER","ANGLE","ANGRY","ANGST","ANIME","ANKLE","ANNEX","ANNOY","ANNUL","ANODE","ANTIC","ANVIL","AORTA","APART","APHID","APING","APNEA","APPLE","APPLY","APRON","APTLY","ARBOR","ARDOR","ARENA","ARGUE","ARISE","ARMOR","AROMA","AROSE","ARRAY","ARROW","ARSON","ARTSY","ASCOT","ASHEN","ASIDE","ASKEW","ASSAY","ASSET","ATOLL","ATONE","ATTIC","AUDIO","AUDIT","AUGUR","AUNTY","AVAIL","AVERT","AVIAN","AVOID","AWAIT","AWAKE","AWARD","AWARE","AWASH","AWFUL","AWOKE","AXIAL","AXIOM","AXION","AZURE","BACON","BADGE","BADLY","BAGEL","BAGGY","BAKER","BALER","BALMY","BANAL","BANJO","BARGE","BARON","BASAL","BASIC","BASIL","BASIN","BASIS","BASTE","BATCH","BATHE","BATON","BATTY","BAWDY","BAYOU","BEACH","BEADY","BEARD","BEAST","BEECH","BEEFY","BEFIT","BEGAN","BEGAT","BEGET","BEGIN","BEGUN","BEING","BELCH","BELIE","BELLE","BELLY","BELOW","BENCH","BERET","BERRY","BERTH","BESET","BETEL","BEVEL","BEZEL","BIBLE","BICEP","BIDDY","BIGOT","BILGE","BILLY","BINGE","BINGO","BIOME","BIRCH","BIRTH","BISON","BITTY","BLACK","BLADE","BLAME","BLAND","BLANK","BLARE","BLAST","BLAZE","BLEAK","BLEAT","BLEED","BLEEP","BLEND","BLESS","BLIMP","BLIND","BLINK","BLISS","BLITZ","BLOAT","BLOCK","BLOKE","BLOND","BLOOD","BLOOM","BLOWN","BLUER","BLUFF","BLUNT","BLURB","BLURT","BLUSH","BOARD","BOAST","BOBBY","BONEY","BONGO","BONUS","BOOBY","BOOST","BOOTH","BOOTY","BOOZE","BOOZY","BORAX","BORNE","BOSOM","BOSSY","BOTCH","BOUGH","BOULE","BOUND","BOWEL","BOXER","BRACE","BRAID","BRAIN","BRAKE","BRAND","BRASH","BRASS","BRAVE","BRAVO","BRAWL","BRAWN","BREAD","BREAK","BREED","BRIAR","BRIBE","BRICK","BRIDE","BRIEF","BRINE","BRING","BRINK","BRINY","BRISK","BROAD","BROIL","BROKE","BROOD","BROOK","BROOM","BROTH","BROWN","BRUNT","BRUSH","BRUTE","BUDDY","BUDGE","BUGGY","BUGLE","BUILD","BUILT","BULGE","BULKY","BULLY","BUNCH","BUNNY","BURLY","BURNT","BURST","BUSED","BUSHY","BUTCH","BUTTE","BUXOM","BUYER","BYLAW","CABAL","CABBY","CABIN","CABLE","CACAO","CACHE","CACTI","CADDY","CADET","CAGEY","CAIRN","CAMEL","CAMEO","CANAL","CANDY","CANNY","CANOE","CANON","CAPER","CAPUT","CARAT","CARGO","CAROL","CARRY","CARVE","CASTE","CATCH","CATER","CATTY","CAULK","CAUSE","CAVIL","CEASE","CEDAR","CELLO","CHAFE","CHAFF","CHAIN","CHAIR","CHALK","CHAMP","CHANT","CHAOS","CHARD","CHARM","CHART","CHASE","CHASM","CHEAP","CHEAT","CHECK","CHEEK","CHEER","CHESS","CHEST","CHICK","CHIDE","CHIEF","CHILD","CHILI","CHILL","CHIME","CHINA","CHIRP","CHOCK","CHOIR","CHOKE","CHORD","CHORE","CHOSE","CHUCK","CHUMP","CHUNK","CHURN","CHUTE","CIDER","CIGAR","CINCH","CIRCA","CIVIC","CIVIL","CLACK","CLAIM","CLAMP","CLANG","CLANK","CLASH","CLASP","CLASS","CLEAN","CLEAR","CLEAT","CLEFT","CLERK","CLICK","CLIFF","CLIMB","CLING","CLINK","CLOAK","CLOCK","CLONE","CLOSE","CLOTH","CLOUD","CLOUT","CLOVE","CLOWN","CLUCK","CLUED","CLUMP","CLUNG","COACH","COAST","COBRA","COCOA","COLON","COLOR","COMET","COMFY","COMIC","COMMA","CONCH","CONDO","CONIC","COPSE","CORAL","CORER","CORNY","COUCH","COUGH","COULD","COUNT","COUPE","COURT","COVEN","COVER","COVET","COVEY","COWER","COYLY","CRACK","CRAFT","CRAMP","CRANE","CRANK","CRASH","CRASS","CRATE","CRAVE","CRAWL","CRAZE","CRAZY","CREAK","CREAM","CREDO","CREED","CREEK","CREEP","CREME","CREPE","CREPT","CRESS","CREST","CRICK","CRIED","CRIER","CRIME","CRIMP","CRISP","CROAK","CROCK","CRONE","CRONY","CROOK","CROSS","CROUP","CROWD","CROWN","CRUDE","CRUEL","CRUMB","CRUMP","CRUSH","CRUST","CRYPT","CUBIC","CUMIN","CURIO","CURLY","CURRY","CURSE","CURVE","CURVY","CUTIE","CYBER","CYCLE","CYNIC","DADDY","DAILY","DAIRY","DAISY","DALLY","DANCE","DANDY","DATUM","DAUNT","DEALT","DEATH","DEBAR","DEBIT","DEBUG","DEBUT","DECAL","DECAY","DECOR","DECOY","DECRY","DEFER","DEIGN","DEITY","DELAY","DELTA","DELVE","DEMON","DEMUR","DENIM","DENSE","DEPOT","DEPTH","DERBY","DETER","DETOX","DEUCE","DEVIL","DIARY","DICEY","DIGIT","DILLY","DIMLY","DINER","DINGO","DINGY","DIODE","DIRGE","DIRTY","DISCO","DITCH","DITTO","DITTY","DIVER","DIZZY","DODGE","DODGY","DOGMA","DOING","DOLLY","DONOR","DONUT","DOPEY","DOUBT","DOUGH","DOWDY","DOWEL","DOWNY","DOWRY","DOZEN","DRAFT","DRAIN","DRAKE","DRAMA","DRANK","DRAPE","DRAWL","DRAWN","DREAD","DREAM","DRESS","DRIED","DRIER","DRIFT","DRILL","DRINK","DRIVE","DROIT","DROLL","DRONE","DROOL","DROOP","DROSS","DROVE","DROWN","DRUID","DRUNK","DRYER","DRYLY","DUCHY","DULLY","DUMMY","DUMPY","DUNCE","DUSKY","DUSTY","DUTCH","DUVET","DWARF","DWELL","DWELT","DYING","EAGER","EAGLE","EARLY","EARTH","EASEL","EATEN","EATER","EBONY","ECLAT","EDICT","EDIFY","EERIE","EGRET","EIGHT","EJECT","EKING","ELATE","ELBOW","ELDER","ELECT","ELEGY","ELFIN","ELIDE","ELITE","ELOPE","ELUDE","EMAIL","EMBED","EMBER","EMCEE","EMPTY","ENACT","ENDOW","ENEMA","ENEMY","ENJOY","ENNUI","ENSUE","ENTER","ENTRY","ENVOY","EPOCH","EPOXY","EQUAL","EQUIP","ERASE","ERECT","ERODE","ERROR","ERUPT","ESSAY","ESTER","ETHER","ETHIC","ETHOS","ETUDE","EVADE","EVENT","EVERY","EVICT","EVOKE","EXACT","EXALT","EXCEL","EXERT","EXILE","EXIST","EXPEL","EXTOL","EXTRA","EXULT","EYING","FABLE","FACET","FAINT","FAIRY","FAITH","FALSE","FANCY","FANNY","FARCE","FATAL","FATTY","FAULT","FAUNA","FAVOR","FEAST","FECAL","FEIGN","FELLA","FELON","FEMME","FEMUR","FENCE","FERAL","FERRY","FETAL","FETCH","FETID","FETUS","FEVER","FEWER","FIBER","FIBRE","FICUS","FIELD","FIEND","FIERY","FIFTH","FIFTY","FIGHT","FILER","FILET","FILLY","FILMY","FILTH","FINAL","FINCH","FINER","FIRST","FISHY","FIXER","FIZZY","FJORD","FLACK","FLAIL","FLAIR","FLAKE","FLAKY","FLAME","FLANK","FLARE","FLASH","FLASK","FLECK","FLEET","FLESH","FLICK","FLIER","FLING","FLINT","FLIRT","FLOAT","FLOCK","FLOOD","FLOOR","FLORA","FLOSS","FLOUR","FLOUT","FLOWN","FLUFF","FLUID","FLUKE","FLUME","FLUNG","FLUNK","FLUSH","FLUTE","FLYER","FOAMY","FOCAL","FOCUS","FOGGY","FOIST","FOLIO","FOLLY","FORAY","FORCE","FORGE","FORGO","FORTE","FORTH","FORTY","FORUM","FOUND","FOYER","FRAIL","FRAME","FRANK","FRAUD","FREAK","FREED","FREER","FRESH","FRIAR","FRIED","FRILL","FRISK","FRITZ","FROCK","FROND","FRONT","FROST","FROTH","FROWN","FROZE","FRUIT","FUDGE","FUGUE","FULLY","FUNGI","FUNKY","FUNNY","FUROR","FURRY","FUSSY","FUZZY","GAFFE","GAILY","GAMER","GAMMA","GAMUT","GASSY","GAUDY","GAUGE","GAUNT","GAUZE","GAVEL","GAWKY","GAYER","GAYLY","GAZER","GECKO","GEEKY","GEESE","GENIE","GENRE","GHOST","GHOUL","GIANT","GIDDY","GIPSY","GIRLY","GIRTH","GIVEN","GIVER","GLADE","GLAND","GLARE","GLASS","GLAZE","GLEAM","GLEAN","GLIDE","GLINT","GLOAT","GLOBE","GLOOM","GLORY","GLOSS","GLOVE","GLYPH","GNASH","GNOME","GODLY","GOING","GOLEM","GOLLY","GONAD","GONER","GOODY","GOOEY","GOOFY","GOOSE","GORGE","GOUGE","GOURD","GRACE","GRADE","GRAFT","GRAIL","GRAIN","GRAND","GRANT","GRAPE","GRAPH","GRASP","GRASS","GRATE","GRAVE","GRAVY","GRAZE","GREAT","GREED","GREEN","GREET","GRIEF","GRILL","GRIME","GRIMY","GRIND","GRIPE","GROAN","GROIN","GROOM","GROPE","GROSS","GROUP","GROUT","GROVE","GROWL","GROWN","GRUEL","GRUFF","GRUNT","GUARD","GUAVA","GUESS","GUEST","GUIDE","GUILD","GUILE","GUILT","GUISE","GULCH","GULLY","GUMBO","GUMMY","GUPPY","GUSTO","GUSTY","GYPSY","HABIT","HAIRY","HALVE","HANDY","HAPPY","HARDY","HAREM","HARPY","HARRY","HARSH","HASTE","HASTY","HATCH","HATER","HAUNT","HAUTE","HAVEN","HAVOC","HAZEL","HEADY","HEARD","HEART","HEATH","HEAVE","HEAVY","HEDGE","HEFTY","HEIST","HELIX","HELLO","HENCE","HERON","HILLY","HINGE","HIPPO","HIPPY","HITCH","HOARD","HOBBY","HOIST","HOLLY","HOMER","HONEY","HONOR","HORDE","HORNY","HORSE","HOTEL","HOTLY","HOUND","HOUSE","HOVEL","HOVER","HOWDY","HUMAN","HUMID","HUMOR","HUMPH","HUMUS","HUNCH","HUNKY","HURRY","HUSKY","HUSSY","HUTCH","HYDRO","HYENA","HYMEN","HYPER","ICILY","ICING","IDEAL","IDIOM","IDIOT","IDLER","IDYLL","IGLOO","ILIAC","IMAGE","IMBUE","IMPEL","IMPLY","INANE","INBOX","INCUR","INDEX","INEPT","INERT","INFER","INGOT","INLAY","INLET","INNER","INPUT","INTER","INTRO","IONIC","IRATE","IRONY","ISLET","ISSUE","ITCHY","IVORY","JAUNT","JAZZY","JELLY","JERKY","JETTY","JEWEL","JIFFY","JOINT","JOIST","JOKER","JOLLY","JOUST","JUDGE","JUICE","JUICY","JUMBO","JUMPY","JUNTA","JUNTO","JUROR","KAPPA","KARMA","KAYAK","KEBAB","KHAKI","KINKY","KIOSK","KITTY","KNACK","KNAVE","KNEAD","KNEED","KNEEL","KNELT","KNIFE","KNOCK","KNOLL","KNOWN","KOALA","KRILL","LABEL","LABOR","LADEN","LADLE","LAGER","LANCE","LANKY","LAPEL","LAPSE","LARGE","LARVA","LASSO","LATCH","LATER","LATHE","LATTE","LAUGH","LAYER","LEACH","LEAFY","LEAKY","LEANT","LEAPT","LEARN","LEASE","LEASH","LEAST","LEAVE","LEDGE","LEECH","LEERY","LEFTY","LEGAL","LEGGY","LEMON","LEMUR","LEPER","LEVEL","LEVER","LIBEL","LIEGE","LIGHT","LIKEN","LILAC","LIMBO","LIMIT","LINEN","LINER","LINGO","LIPID","LITHE","LIVER","LIVID","LLAMA","LOAMY","LOATH","LOBBY","LOCAL","LOCUS","LODGE","LOFTY","LOGIC","LOGIN","LOOPY","LOOSE","LORRY","LOSER","LOUSE","LOUSY","LOVER","LOWER","LOWLY","LOYAL","LUCID","LUCKY","LUMEN","LUMPY","LUNAR","LUNCH","LUNGE","LUPUS","LURCH","LURID","LUSTY","LYING","LYMPH","LYNCH","LYRIC","MACAW","MACHO","MACRO","MADAM","MADLY","MAFIA","MAGIC","MAGMA","MAIZE","MAJOR","MAKER","MAMBO","MAMMA","MAMMY","MANGA","MANGE","MANGO","MANGY","MANIA","MANIC","MANLY","MANOR","MAPLE","MARCH","MARRY","MARSH","MASON","MASSE","MATCH","MATEY","MAUVE","MAXIM","MAYBE","MAYOR","MEALY","MEANT","MEATY","MECCA","MEDAL","MEDIA","MEDIC","MELEE","MELON","MERCY","MERGE","MERIT","MERRY","METAL","METER","METRO","MICRO","MIDGE","MIDST","MIGHT","MILKY","MIMIC","MINCE","MINER","MINIM","MINOR","MINTY","MINUS","MIRTH","MISER","MISSY","MOCHA","MODAL","MODEL","MODEM","MOGUL","MOIST","MOLAR","MOLDY","MONEY","MONTH","MOODY","MOOSE","MORAL","MORON","MORPH","MOSSY","MOTEL","MOTIF","MOTOR","MOTTO","MOULT","MOUND","MOUNT","MOURN","MOUSE","MOUTH","MOVER","MOVIE","MOWER","MUCKY","MUCUS","MUDDY","MULCH","MUMMY","MUNCH","MURAL","MURKY","MUSHY","MUSIC","MUSKY","MUSTY","MYRRH","NADIR","NAIVE","NANNY","NASAL","NASTY","NATAL","NAVAL","NAVEL","NEEDY","NEIGH","NERDY","NERVE","NEVER","NEWER","NEWLY","NICER","NICHE","NIECE","NIGHT","NINJA","NINNY","NINTH","NOBLE","NOBLY","NOISE","NOISY","NOMAD","NOOSE","NORTH","NOSEY","NOTCH","NOVEL","NUDGE","NURSE","NUTTY","NYLON","NYMPH","OAKEN","OBESE","OCCUR","OCEAN","OCTAL","OCTET","ODDER","ODDLY","OFFAL","OFFER","OFTEN","OLDEN","OLDER","OLIVE","OMBRE","OMEGA","ONION","ONSET","OPERA","OPINE","OPIUM","OPTIC","ORBIT","ORDER","ORGAN","OTHER","OTTER","OUGHT","OUNCE","OUTDO","OUTER","OUTGO","OVARY","OVATE","OVERT","OVINE","OVOID","OWING","OWNER","OXIDE","OZONE","PADDY","PAGAN","PAINT","PALER","PALSY","PANEL","PANIC","PANSY","PAPAL","PAPER","PARER","PARKA","PARRY","PARSE","PARTY","PASTA","PASTE","PASTY","PATCH","PATIO","PATSY","PATTY","PAUSE","PAYEE","PAYER","PEACE","PEACH","PEARL","PECAN","PEDAL","PENAL","PENCE","PENNE","PENNY","PERCH","PERIL","PERKY","PESKY","PESTO","PETAL","PETTY","PHASE","PHONE","PHONY","PHOTO","PIANO","PICKY","PIECE","PIETY","PIGGY","PILOT","PINCH","PINEY","PINKY","PINTO","PIPER","PIQUE","PITCH","PITHY","PIVOT","PIXEL","PIXIE","PIZZA","PLACE","PLAID","PLAIN","PLAIT","PLANE","PLANK","PLANT","PLATE","PLAZA","PLEAD","PLEAT","PLIED","PLIER","PLUCK","PLUMB","PLUME","PLUMP","PLUNK","PLUSH","POESY","POINT","POISE","POKER","POLAR","POLKA","POLYP","POOCH","POPPY","PORCH","POSER","POSIT","POSSE","POUCH","POUND","POUTY","POWER","PRANK","PRAWN","PREEN","PRESS","PRICE","PRICK","PRIDE","PRIED","PRIME","PRIMO","PRINT","PRIOR","PRISM","PRIVY","PRIZE","PROBE","PRONE","PRONG","PROOF","PROSE","PROUD","PROVE","PROWL","PROXY","PRUDE","PRUNE","PSALM","PUBIC","PUDGY","PUFFY","PULPY","PULSE","PUNCH","PUPAL","PUPIL","PUPPY","PUREE","PURER","PURGE","PURSE","PUSHY","PUTTY","PYGMY","QUACK","QUAIL","QUAKE","QUALM","QUARK","QUART","QUASH","QUASI","QUEEN","QUEER","QUELL","QUERY","QUEST","QUEUE","QUICK","QUIET","QUILL","QUILT","QUIRK","QUITE","QUOTA","QUOTE","QUOTH","RABBI","RABID","RACER","RADAR","RADII","RADIO","RAINY","RAISE","RAJAH","RALLY","RALPH","RAMEN","RANCH","RANDY","RANGE","RAPID","RARER","RASPY","RATIO","RATTY","RAVEN","RAYON","RAZOR","REACH","REACT","READY","REALM","REARM","REBAR","REBEL","REBUS","REBUT","RECAP","RECUR","RECUT","REEDY","REFER","REFIT","REGAL","REHAB","REIGN","RELAX","RELAY","RELIC","REMIT","RENAL","RENEW","REPAY","REPEL","REPLY","RERUN","RESET","RESIN","RETCH","RETRO","RETRY","REUSE","REVEL","REVUE","RHINO","RHYME","RIDER","RIDGE","RIFLE","RIGHT","RIGID","RIGOR","RINSE","RIPEN","RIPER","RISEN","RISER","RISKY","RIVAL","RIVER","RIVET","ROACH","ROAST","ROBIN","ROBOT","ROCKY","RODEO","ROGER","ROGUE","ROOMY","ROOST","ROTOR","ROUGE","ROUGH","ROUND","ROUSE","ROUTE","ROVER","ROWDY","ROWER","ROYAL","RUDDY","RUDER","RUGBY","RULER","RUMBA","RUMOR","RUPEE","RURAL","RUSTY","SADLY","SAFER","SAINT","SALAD","SALLY","SALON","SALSA","SALTY","SALVE","SALVO","SANDY","SANER","SAPPY","SASSY","SATIN","SATYR","SAUCE","SAUCY","SAUNA","SAUTE","SAVOR","SAVOY","SAVVY","SCALD","SCALE","SCALP","SCALY","SCAMP","SCANT","SCARE","SCARF","SCARY","SCENE","SCENT","SCION","SCOFF","SCOLD","SCONE","SCOOP","SCOPE","SCORE","SCORN","SCOUR","SCOUT","SCOWL","SCRAM","SCRAP","SCREE","SCREW","SCRUB","SCRUM","SCUBA","SEDAN","SEEDY","SEGUE","SEIZE","SEMEN","SENSE","SEPIA","SERIF","SERUM","SERVE","SETUP","SEVEN","SEVER","SEWER","SHACK","SHADE","SHADY","SHAFT","SHAKE","SHAKY","SHALE","SHALL","SHALT","SHAME","SHANK","SHAPE","SHARD","SHARE","SHARK","SHARP","SHAVE","SHAWL","SHEAR","SHEEN","SHEEP","SHEER","SHEET","SHEIK","SHELF","SHELL","SHIED","SHIFT","SHINE","SHINY","SHIRE","SHIRK","SHIRT","SHOAL","SHOCK","SHONE","SHOOK","SHOOT","SHORE","SHORN","SHORT","SHOUT","SHOVE","SHOWN","SHOWY","SHREW","SHRUB","SHRUG","SHUCK","SHUNT","SHUSH","SHYLY","SIEGE","SIEVE","SIGHT","SIGMA","SILKY","SILLY","SINCE","SINEW","SINGE","SIREN","SISSY","SIXTH","SIXTY","SKATE","SKIER","SKIFF","SKILL","SKIMP","SKIRT","SKULK","SKULL","SKUNK","SLACK","SLAIN","SLANG","SLANT","SLASH","SLATE","SLAVE","SLEEK","SLEEP","SLEET","SLEPT","SLICE","SLICK","SLIDE","SLIME","SLIMY","SLING","SLINK","SLOOP","SLOPE","SLOSH","SLOTH","SLUMP","SLUNG","SLUNK","SLURP","SLUSH","SLYLY","SMACK","SMALL","SMART","SMASH","SMEAR","SMELL","SMELT","SMILE","SMIRK","SMITE","SMITH","SMOCK","SMOKE","SMOKY","SMOTE","SNACK","SNAIL","SNAKE","SNAKY","SNARE","SNARL","SNEAK","SNEER","SNIDE","SNIFF","SNIPE","SNOOP","SNORE","SNORT","SNOUT","SNOWY","SNUCK","SNUFF","SOAPY","SOBER","SOGGY","SOLAR","SOLID","SOLVE","SONAR","SONIC","SOOTH","SOOTY","SORRY","SOUND","SOUTH","SOWER","SPACE","SPADE","SPANK","SPARE","SPARK","SPASM","SPAWN","SPEAK","SPEAR","SPECK","SPEED","SPELL","SPELT","SPEND","SPENT","SPERM","SPICE","SPICY","SPIED","SPIEL","SPIKE","SPIKY","SPILL","SPILT","SPINE","SPINY","SPIRE","SPITE","SPLAT","SPLIT","SPOIL","SPOKE","SPOOF","SPOOK","SPOOL","SPOON","SPORE","SPORT","SPOUT","SPRAY","SPREE","SPRIG","SPUNK","SPURN","SPURT","SQUAD","SQUAT","SQUIB","STACK","STAFF","STAGE","STAID","STAIN","STAIR","STAKE","STALE","STALK","STALL","STAMP","STAND","STANK","STARE","STARK","START","STASH","STATE","STAVE","STEAD","STEAK","STEAL","STEAM","STEED","STEEL","STEEP","STEER","STEIN","STERN","STICK","STIFF","STILL","STILT","STING","STINK","STINT","STOCK","STOIC","STOKE","STOLE","STOMP","STONE","STONY","STOOD","STOOL","STOOP","STORE","STORK","STORM","STORY","STOUT","STOVE","STRAP","STRAW","STRAY","STRIP","STRUT","STUCK","STUDY","STUFF","STUMP","STUNG","STUNK","STUNT","STYLE","SUAVE","SUGAR","SUING","SUITE","SULKY","SULLY","SUMAC","SUNNY","SUPER","SURER","SURGE","SURLY","SUSHI","SWAMI","SWAMP","SWARM","SWASH","SWATH","SWEAR","SWEAT","SWEEP","SWEET","SWELL","SWEPT","SWIFT","SWILL","SWINE","SWING","SWIRL","SWISH","SWOON","SWOOP","SWORD","SWORE","SWORN","SWUNG","SYNOD","SYRUP","TABBY","TABLE","TABOO","TACIT","TACKY","TAFFY","TAINT","TAKEN","TAKER","TALLY","TALON","TAMER","TANGO","TANGY","TAPER","TAPIR","TARDY","TAROT","TASTE","TASTY","TATTY","TAUNT","TAWNY","TEACH","TEARY","TEASE","TEDDY","TEETH","TEMPO","TENET","TENOR","TENSE","TENTH","TEPEE","TEPID","TERRA","TERSE","TESTY","THANK","THEFT","THEIR","THEME","THERE","THESE","THETA","THICK","THIEF","THIGH","THING","THINK","THIRD","THONG","THORN","THOSE","THREE","THREW","THROB","THROW","THRUM","THUMB","THUMP","THYME","TIARA","TIBIA","TIDAL","TIGER","TIGHT","TILDE","TIMER","TIMID","TIPSY","TITAN","TITHE","TITLE","TOAST","TODAY","TODDY","TOKEN","TONAL","TONGA","TONIC","TOOTH","TOPAZ","TOPIC","TORCH","TORSO","TORUS","TOTAL","TOTEM","TOUCH","TOUGH","TOWEL","TOWER","TOXIC","TOXIN","TRACE","TRACK","TRACT","TRADE","TRAIL","TRAIN","TRAIT","TRAMP","TRASH","TRAWL","TREAD","TREAT","TREND","TRIAD","TRIAL","TRIBE","TRICE","TRICK","TRIED","TRIPE","TRITE","TROLL","TROOP","TROPE","TROUT","TROVE","TRUCE","TRUCK","TRUER","TRULY","TRUMP","TRUNK","TRUSS","TRUST","TRUTH","TRYST","TUBAL","TUBER","TULIP","TULLE","TUMOR","TUNIC","TURBO","TUTOR","TWANG","TWEAK","TWEED","TWEET","TWICE","TWINE","TWIRL","TWIST","TWIXT","TYING","UDDER","ULCER","ULTRA","UMBRA","UNCLE","UNCUT","UNDER","UNDID","UNDUE","UNFED","UNFIT","UNIFY","UNION","UNITE","UNITY","UNLIT","UNMET","UNSET","UNTIE","UNTIL","UNWED","UNZIP","UPPER","UPSET","URBAN","URINE","USAGE","USHER","USING","USUAL","USURP","UTILE","UTTER","VAGUE","VALET","VALID","VALOR","VALUE","VALVE","VAPID","VAPOR","VAULT","VAUNT","VEGAN","VENOM","VENUE","VERGE","VERSE","VERSO","VERVE","VICAR","VIDEO","VIGIL","VIGOR","VILLA","VINYL","VIOLA","VIPER","VIRAL","VIRUS","VISIT","VISOR","VISTA","VITAL","VIVID","VIXEN","VOCAL","VODKA","VOGUE","VOICE","VOILA","VOMIT","VOTER","VOUCH","VOWEL","VYING","WACKY","WAFER","WAGER","WAGON","WAIST","WAIVE","WALTZ","WARTY","WASTE","WATCH","WATER","WAVER","WAXEN","WEARY","WEAVE","WEDGE","WEEDY","WEIGH","WEIRD","WELCH","WELSH","WENCH","WHACK","WHALE","WHARF","WHEAT","WHEEL","WHELP","WHERE","WHICH","WHIFF","WHILE","WHINE","WHINY","WHIRL","WHISK","WHITE","WHOLE","WHOOP","WHOSE","WIDEN","WIDER","WIDOW","WIDTH","WIELD","WIGHT","WILLY","WIMPY","WINCE","WINCH","WINDY","WISER","WISPY","WITCH","WITTY","WOKEN","WOMAN","WOMEN","WOODY","WOOER","WOOLY","WOOZY","WORDY","WORLD","WORRY","WORSE","WORST","WORTH","WOULD","WOUND","WOVEN","WRACK","WRATH","WREAK","WRECK","WREST","WRING","WRIST","WRITE","WRONG","WROTE","WRUNG","WRYLY","YACHT","YEARN","YEAST","YIELD","YOUNG","YOUTH","ZEBRA","ZESTY","ZONAL"];
 const VALID_GUESSES = new Set(["AALII","ABACA","ABACK","ABAFT","ABAMP","ABASE","ABASH","ABATE","ABBES","ABBEY","ABBOT","ABEAM","ABELE","ABETS","ABHOR","ABIDE","ABIES","ABLED","ABLER","ABMHO","ABODE","ABOHM","ABORT","ABOUT","ABOVE","ABUSE","ABUTS","ABUZZ","ABYSM","ABYSS","ACARI","ACCEL","ACERB","ACHED","ACHES","ACHOO","ACIDS","ACING","ACINI","ACMES","ACNED","ACORN","ACRED","ACRES","ACRID","ACTED","ACTIN","ACTOR","ACUTE","ADAGE","ADAPT","ADDAX","ADDED","ADDER","ADDLE","ADEPT","ADIEU","ADIOS","ADITS","ADMAN","ADMEN","ADMIN","ADMIT","ADMIX","ADOBE","ADOPT","ADORE","ADORN","ADOWN","ADULT","ADUST","ADZES","AECIA","AEDES","AEGIS","AERIE","AERON","AFFIX","AFIRE","AFOOT","AFORE","AFOUL","AFRIT","AFTER","AGAIN","AGAMA","AGAPE","AGATE","AGAVE","AGENT","AGGER","AGGIE","AGGRO","AGILE","AGING","AGIOS","AGIST","AGITA","AGLET","AGLEY","AGLOW","AGONE","AGONY","AGORA","AGREE","AGRIC","AGRON","AHEAD","AIDED","AIDER","AIDES","AILED","AIMED","AIOLI","AIRED","AIRTS","AISLE","AITCH","AKEES","AKENE","ALACK","ALARM","ALARY","ALATE","ALBUM","ALDER","ALDOL","ALEPH","ALERT","ALGAE","ALGAL","ALGID","ALGIN","ALGOR","ALIAS","ALIBI","ALIEN","ALIGN","ALIKE","ALIVE","ALKYD","ALKYL","ALLAY","ALLEE","ALLEY","ALLOT","ALLOW","ALLOY","ALLYL","ALOES","ALOFT","ALOHA","ALOIN","ALONE","ALONG","ALOOF","ALOUD","ALPHA","ALTAR","ALTER","ALTOS","ALULA","ALUMS","AMAHS","AMAIN","AMASS","AMAZE","AMBER","AMBIT","AMBLE","AMBOS","AMBRY","AMEND","AMENT","AMICE","AMIDE","AMIGO","AMINE","AMINO","AMISS","AMITY","AMNIO","AMONG","AMOUR","AMPLE","AMPLY","AMUSE","ANCON","ANEAR","ANELE","ANENT","ANGEL","ANGER","ANGLE","ANGRY","ANGST","ANILE","ANILS","ANIMA","ANIME","ANION","ANISE","ANKHS","ANKLE","ANKUS","ANNAL","ANNAS","ANNEX","ANNOY","ANNUL","ANOAS","ANODE","ANOLE","ANONS","ANTED","ANTES","ANTIC","ANTIQ","ANTIS","ANTRE","ANTSY","ANVIL","AORTA","APACE","APART","APEAK","APERY","APHID","APHIS","APIAN","APING","APISH","APNEA","APORT","APPEL","APPLE","APPLY","APRON","APSES","APSIS","APTER","APTLY","AQUAS","ARAKS","ARBOR","ARCED","ARCHT","ARDEB","ARDOR","AREAL","AREAS","ARECA","ARENA","ARETE","ARGAL","ARGIL","ARGOL","ARGON","ARGOT","ARGUE","ARIAS","ARIEL","ARILS","ARISE","ARMED","ARMET","ARMOR","AROID","AROMA","AROSE","ARRAS","ARRAY","ARRIS","ARROW","ARSED","ARSIS","ARSON","ARTEL","ARTSY","ARUMS","ASCOT","ASCUS","ASDIC","ASHED","ASHEN","ASHES","ASIDE","ASKED","ASKER","ASKEW","ASPEN","ASPER","ASPIC","ASSAI","ASSAY","ASSES","ASSET","ASSOC","ASTER","ASTIR","ATILT","ATLAS","ATMAN","ATOLL","ATOMS","ATOMY","ATONE","ATONY","ATRIA","ATRIP","ATTAR","ATTIC","AUDIO","AUDIT","AUGER","AUGHT","AUGUR","AULIC","AULOS","AUNTS","AUNTY","AURAL","AURAR","AURAS","AURIC","AURUM","AUTOS","AUXIN","AVAIL","AVAST","AVENS","AVERS","AVERT","AVIAN","AVION","AVOID","AVOIR","AVOWS","AWAIT","AWAKE","AWARD","AWARE","AWASH","AWFUL","AWING","AWNED","AWOKE","AXIAL","AXILS","AXING","AXIOM","AXION","AXLES","AXONS","AYAHS","AYINS","AZIDE","AZINE","AZOIC","AZOLE","AZOTE","AZOTH","AZURE","BAAED","BABAS","BABEL","BABES","BABUL","BACCY","BACKS","BACON","BADGE","BADLY","BAGEL","BAGGY","BAHTS","BAILS","BAIRN","BAITS","BAIZA","BAIZE","BAKED","BAKER","BAKES","BALAS","BALDS","BALDY","BALED","BALER","BALES","BALKS","BALKY","BALLS","BALLY","BALMS","BALMY","BALSA","BANAL","BANDS","BANDY","BANES","BANGS","BANJO","BANKS","BANNS","BARBS","BARDE","BARDS","BARED","BARER","BARES","BARFS","BARGE","BARIC","BARIT","BARKS","BARMS","BARMY","BARNS","BARON","BARRE","BARYE","BASAL","BASED","BASER","BASES","BASIC","BASIL","BASIN","BASIS","BASKS","BASSO","BASTE","BATCH","BATED","BATES","BATHE","BATHS","BATIK","BATON","BATTY","BAUDS","BAWDS","BAWDY","BAWLS","BAYED","BAYOU","BAZAR","BEACH","BEADS","BEADY","BEAKS","BEAMS","BEAMY","BEANO","BEANS","BEARD","BEARS","BEAST","BEATS","BEAUS","BEAUT","BEBOP","BECKS","BEDEL","BEDEW","BEDIM","BEECH","BEEFS","BEEFY","BEEPS","BEERS","BEERY","BEETS","BEFIT","BEFOG","BEGAN","BEGAT","BEGET","BEGIN","BEGOT","BEGUM","BEGUN","BEIGE","BEING","BELAY","BELCH","BELGA","BELIE","BELLE","BELLS","BELLY","BELOW","BELTS","BEMAS","BENCH","BENDS","BENDY","BENNE","BENNY","BENTS","BERET","BERGS","BERKS","BERMS","BERRY","BERTH","BERYL","BESET","BESOM","BESOT","BESTS","BETAS","BETEL","BETHS","BETTA","BEVEL","BEVVY","BEZEL","BHAJI","BHANG","BIALY","BIBLE","BICEP","BIDDY","BIDES","BIDET","BIELD","BIERS","BIFFS","BIFID","BIGHT","BIGOT","BIJOU","BIKED","BIKER","BIKES","BILBO","BILGE","BILKS","BILLS","BILLY","BIMAH","BIMBO","BINAL","BINDS","BINES","BINGE","BINGO","BIOME","BIOTA","BIPED","BIPOD","BIRCH","BIRDS","BIRLS","BIRRS","BIRTH","BISES","BISON","BITCH","BITER","BITES","BITTS","BITTY","BLABS","BLACK","BLADE","BLAGS","BLAHS","BLAIN","BLAME","BLAND","BLANK","BLARE","BLASE","BLAST","BLATE","BLATS","BLAZE","BLEAK","BLEAR","BLEAT","BLEBS","BLEED","BLEEP","BLEND","BLESS","BLIMP","BLIND","BLING","BLINI","BLINK","BLIPS","BLISS","BLITZ","BLOAT","BLOBS","BLOCK","BLOCS","BLOGS","BLOKE","BLOND","BLOOD","BLOOM","BLOOP","BLOTS","BLOWN","BLOWS","BLOWY","BLUED","BLUER","BLUES","BLUET","BLUEY","BLUFF","BLUNT","BLURB","BLURS","BLURT","BLUSH","BOARD","BOARS","BOART","BOAST","BOATS","BOBBY","BODED","BODES","BODGE","BOFFO","BOGEY","BOGGY","BOGIE","BOGLE","BOGON","BOGUS","BOILS","BOINK","BOLAS","BOLES","BOLLS","BOLOS","BOLTS","BOLUS","BOMBE","BOMBS","BONCE","BONDS","BONED","BONER","BONES","BONEY","BONGO","BONGS","BONKS","BONNE","BONNY","BONUS","BONZE","BOOBS","BOOBY","BOOED","BOOKS","BOOMS","BOONG","BOONS","BOORS","BOOST","BOOTH","BOOTS","BOOTY","BOOZE","BOOZY","BORAK","BORAX","BORED","BORER","BORES","BORIC","BORNE","BORON","BOSKY","BOSOM","BOSON","BOSSY","BOTCH","BOTEL","BOTHY","BOUGH","BOULE","BOUND","BOUSE","BOUTS","BOVID","BOWED","BOWEL","BOWER","BOWLS","BOWSE","BOXED","BOXEN","BOXER","BOXES","BOYAR","BOYLA","BOZOS","BRACE","BRACH","BRACT","BRADS","BRAES","BRAGS","BRAID","BRAIL","BRAIN","BRAKE","BRAND","BRANT","BRASH","BRASS","BRATS","BRAVE","BRAVO","BRAWL","BRAWN","BRAXY","BRAYS","BRAZE","BREAD","BREAK","BREAM","BREDE","BREED","BRENT","BREVE","BREWS","BRIAR","BRIBE","BRICK","BRIDE","BRIEF","BRIER","BRIGS","BRILL","BRIMS","BRINE","BRING","BRINK","BRINY","BRISK","BRITS","BROAD","BROCH","BROCK","BROIL","BROKE","BRONC","BROOD","BROOK","BROOM","BROSE","BROTH","BROWN","BROWS","BRUIN","BRUIT","BRUME","BRUNT","BRUSH","BRUTE","BUBAL","BUBBA","BUCKO","BUCKS","BUDDY","BUDGE","BUENO","BUFFO","BUFFS","BUGGY","BUGLE","BUHLS","BUILD","BUILT","BULBS","BULGE","BULGY","BULKS","BULKY","BULLA","BULLS","BULLY","BUMPH","BUMPS","BUMPY","BUNCH","BUNCO","BUNGS","BUNKS","BUNNY","BUNTS","BUOYS","BURAN","BURBS","BURET","BURGH","BURGS","BURIN","BURKA","BURKE","BURLS","BURLY","BURNS","BURNT","BURPS","BURRO","BURRS","BURRY","BURSA","BURSE","BURST","BUSBY","BUSED","BUSES","BUSHY","BUSKS","BUSTS","BUSTY","BUTCH","BUTEO","BUTTE","BUTTS","BUTTY","BUTUT","BUTYL","BUXOM","BUYER","BWANA","BYLAW","BYRES","BYTES","BYWAY","CABAL","CABBY","CABER","CABIN","CABLE","CABOB","CACAO","CACHE","CACTI","CADDY","CADET","CADGE","CADRE","CAFES","CAFFS","CAGED","CAGER","CAGES","CAGEY","CAIRD","CAIRN","CAKED","CAKES","CALKS","CALLA","CALLS","CALMS","CALVE","CALYX","CAMEL","CAMEO","CAMPO","CAMPS","CAMPY","CANAL","CANDY","CANED","CANER","CANES","CANNA","CANNY","CANOE","CANON","CANSO","CANST","CANTO","CANTS","CANTY","CAPED","CAPER","CAPES","CAPON","CAPOS","CAPUT","CARAT","CARBS","CARDS","CARED","CARER","CARES","CARET","CARGO","CARKS","CARNY","CAROB","CAROL","CAROM","CARPI","CARPS","CARRY","CARSE","CARTE","CARTS","CARVE","CASED","CASES","CASKS","CASTE","CASTS","CATCH","CATER","CATTY","CAUDA","CAULK","CAULS","CAUSE","CAVED","CAVER","CAVES","CAVIE","CAVIL","CAWED","CEASE","CECAL","CECUM","CEDAR","CEDED","CEDER","CEDES","CEDIS","CEIBA","CELEB","CELLA","CELLO","CELLS","CELOM","CENSE","CENTO","CENTS","CEORL","CERED","CERES","CERIA","CERIC","CEROS","CERTS","CESAR","CESTA","CHADS","CHAFE","CHAFF","CHAIN","CHAIR","CHALK","CHAMP","CHANT","CHAOS","CHAPE","CHAPS","CHARD","CHARE","CHARM","CHARR","CHARS","CHART","CHARY","CHASE","CHASM","CHATS","CHAWS","CHEAP","CHEAT","CHECK","CHEEK","CHEEP","CHEER","CHEFS","CHELA","CHEMO","CHERT","CHESS","CHEST","CHEVY","CHEWS","CHEWY","CHIAO","CHICK","CHICO","CHIDE","CHIEF","CHILD","CHILI","CHILL","CHIMB","CHIME","CHIMP","CHINA","CHINE","CHING","CHINK","CHINO","CHINS","CHIPS","CHIRK","CHIRM","CHIRP","CHIRR","CHITS","CHIVE","CHIVY","CHOCK","CHOCS","CHOIR","CHOKE","CHOLI","CHOMP","CHOOK","CHOPS","CHORD","CHORE","CHOSE","CHOWS","CHRON","CHUBS","CHUCK","CHUFA","CHUFF","CHUGS","CHUMP","CHUMS","CHUNK","CHURL","CHURN","CHURR","CHUTE","CHYLE","CHYME","CIAOS","CIDER","CIGAR","CILIA","CIMEX","CINCH","CIRCA","CIRRI","CISCO","CITED","CITES","CIVET","CIVIC","CIVIL","CLACK","CLADE","CLAIM","CLAMP","CLAMS","CLANG","CLANK","CLANS","CLAPS","CLARO","CLARY","CLASH","CLASP","CLASS","CLAVE","CLAVI","CLAWS","CLAYS","CLEAN","CLEAR","CLEAT","CLEEK","CLEFS","CLEFT","CLEPE","CLERK","CLEWS","CLICK","CLIFF","CLIMB","CLIME","CLINE","CLING","CLINK","CLIPS","CLITS","CLOAK","CLOCK","CLODS","CLOGS","CLOMB","CLOMP","CLONE","CLONK","CLOPS","CLOSE","CLOTH","CLOTS","CLOUD","CLOUT","CLOVE","CLOWN","CLOYS","CLUBS","CLUCK","CLUED","CLUES","CLUMP","CLUNG","CLUNK","CLVII","CLXII","CLXIV","CLXIX","CLXVI","COACH","COACT","COALS","COALY","COAST","COATI","COATS","COBIA","COBLE","COBRA","COCCI","COCKS","COCKY","COCOA","COCOS","CODAS","CODED","CODER","CODES","CODEX","CODON","COEDS","COGON","COHOS","COIFS","COIGN","COILS","COINS","COIRS","COKED","COKES","COLAS","COLDS","COLES","COLEY","COLIC","COLLY","COLON","COLOR","COLTS","COLZA","COMAS","COMBE","COMBO","COMBS","COMDG","COMER","COMES","COMET","COMFY","COMIC","COMMA","COMPO","COMPS","CONCH","CONDO","CONED","CONES","CONGA","CONIC","CONKS","CONNS","CONTD","CONTE","CONTO","CONTR","COOED","COOEE","COOKS","COOLS","COOMB","COONS","COOPS","COOTS","COPAL","COPAY","COPED","COPER","COPES","COPRA","COPSE","CORAL","CORDS","CORED","CORER","CORES","CORGI","CORIA","CORKS","CORKY","CORMS","CORNS","CORNU","CORNY","CORPS","CORSE","COSEC","COSET","COSTA","COSTE","COSTS","COTES","COTTA","COUCH","COUGH","COULD","COUNT","COUPE","COUPS","COURT","COUTH","COVEN","COVER","COVES","COVET","COVEY","COVIN","COWED","COWER","COWLS","COXAE","COXED","COXES","COYER","COYLY","COYPU","COZEN","CRAAL","CRABS","CRACK","CRAFT","CRAGS","CRAKE","CRAMP","CRAMS","CRANE","CRANK","CRAPE","CRAPS","CRAPY","CRASH","CRASS","CRATE","CRAVE","CRAWL","CRAWS","CRAYS","CRAZE","CRAZY","CREAK","CREAM","CREDO","CREED","CREEK","CREEL","CREEP","CREME","CREPE","CREPT","CRESS","CREST","CREWS","CRIBS","CRICK","CRIED","CRIER","CRIES","CRIME","CRIMP","CRINE","CRISP","CROAK","CROCK","CROFT","CRONE","CRONK","CRONY","CROOK","CROON","CROPS","CRORE","CROSS","CROUP","CROWD","CROWN","CROWS","CROZE","CRUCK","CRUDE","CRUEL","CRUET","CRUFT","CRUMB","CRUMP","CRUSE","CRUSH","CRUST","CRWTH","CRYPT","CRYST","CUBBY","CUBEB","CUBED","CUBER","CUBES","CUBIC","CUBIT","CUDDY","CUFFS","CUING","CUKES","CULCH","CULET","CULEX","CULLS","CULLY","CULMS","CULPA","CULTS","CUMIN","CUNTS","CUPEL","CUPID","CUPPA","CURBS","CURCH","CURDS","CURDY","CURED","CURER","CURES","CURET","CURIA","CURIE","CURIO","CURLS","CURLY","CURRY","CURSE","CURVE","CURVY","CUSEC","CUSHY","CUSKS","CUSPS","CUTCH","CUTER","CUTEY","CUTIE","CUTIN","CUTIS","CUTTY","CUTUP","CYBER","CYCAD","CYCLE","CYLIX","CYMAR","CYMAS","CYMES","CYNIC","CYSTS","CYTON","CZARS","DACES","DACHA","DADAS","DADDY","DAFFY","DAGOS","DAHLS","DAILY","DAIRY","DAISY","DALES","DALLY","DAMAN","DAMAR","DAMES","DAMNS","DAMPS","DANCE","DANDY","DANGS","DANIO","DARED","DARER","DARES","DARIC","DARKY","DARNS","DARTS","DATED","DATER","DATES","DATUM","DAUBE","DAUBS","DAUNT","DAVIT","DAWNS","DAZED","DAZES","DDING","DEALS","DEALT","DEANS","DEARS","DEARY","DEATH","DEBAG","DEBAR","DEBIT","DEBTS","DEBUG","DEBUS","DEBUT","DECAF","DECAL","DECAY","DECKS","DECOR","DECOY","DECRY","DEDAL","DEEDS","DEEMS","DEEPS","DEFER","DEFOG","DEFTH","DEGAS","DEICE","DEIFY","DEIGN","DEISM","DEIST","DEITY","DEKKO","DELAY","DELFT","DELIS","DELLS","DELTA","DELVE","DEMIT","DEMOB","DEMON","DEMOS","DEMUR","DENAR","DENIM","DENOM","DENSE","DENTS","DEPOT","DEPTH","DERBY","DERIV","DERMA","DERRY","DESEX","DESKS","DETER","DETOX","DEUCE","DEVIL","DEWAN","DHOBI","DHOLE","DHOTI","DHOWS","DIALS","DIARY","DIAZO","DICED","DICER","DICES","DICEY","DICKS","DICOT","DICTA","DIDST","DIETS","DIFFS","DIGHT","DIGIT","DIKED","DIKES","DILDO","DILLS","DILLY","DIMER","DIMES","DIMLY","DINAR","DINED","DINER","DINES","DINGE","DINGO","DINGS","DINGY","DINKY","DINTS","DIODE","DIPPY","DIPSO","DIRER","DIRGE","DIRKS","DIRTY","DISCO","DISCS","DISHY","DISKS","DISTR","DITCH","DITSY","DITTO","DITTY","DIVAN","DIVAS","DIVED","DIVER","DIVES","DIVOT","DIVVY","DIWAN","DIXIE","DIZEN","DIZZY","DOBBY","DOBLA","DOBRA","DOBRO","DOCKS","DODGE","DODGY","DODOS","DOERS","DOFFS","DOGES","DOGGO","DOGGY","DOGIE","DOGMA","DOILY","DOING","DOLCE","DOLED","DOLES","DOLLS","DOLLY","DOLOR","DOLTS","DOMED","DOMES","DONAS","DONEE","DONGA","DONGS","DONNA","DONNE","DONOR","DONUT","DOOMS","DOORS","DOOZY","DOPED","DOPER","DOPES","DOPEY","DORKS","DORKY","DORMS","DORTY","DOSED","DOSES","DOTED","DOTER","DOTES","DOTTY","DOUBT","DOUCE","DOUGH","DOUMA","DOUSE","DOVES","DOWDY","DOWEL","DOWER","DOWIE","DOWNS","DOWNY","DOWRY","DOWSE","DOYEN","DOZED","DOZEN","DOZER","DOZES","DRABS","DRAFF","DRAFT","DRAGS","DRAIN","DRAKE","DRAMA","DRAMS","DRANK","DRAPE","DRAWL","DRAWN","DRAWS","DRAYS","DREAD","DREAM","DREAR","DREGS","DRESS","DRIED","DRIER","DRIES","DRIFT","DRILL","DRINK","DRIPS","DRIVE","DROID","DROIT","DROLL","DRONE","DROOL","DROOP","DROPS","DROSS","DROVE","DROWN","DRUBS","DRUGS","DRUID","DRUMS","DRUNK","DRUPE","DRUSE","DRYAD","DRYER","DRYLY","DUADS","DUALS","DUCAL","DUCAT","DUCHY","DUCKS","DUCKY","DUCTS","DUDED","DUDES","DUELS","DUETS","DUFFS","DUKES","DULIA","DULLS","DULLY","DULSE","DUMBO","DUMMY","DUMPS","DUMPY","DUNCE","DUNES","DUNGS","DUNKS","DUNNO","DUOMO","DUPED","DUPER","DUPES","DUPLE","DUPPY","DURRA","DURST","DURUM","DUSKY","DUSTS","DUSTY","DUTCH","DUVET","DWARF","DWEEB","DWELL","DWELT","DYADS","DYERS","DYING","DYKES","DYNES","EAGER","EAGLE","EAGRE","EARED","EARLS","EARLY","EARNS","EARTH","EASED","EASEL","EASES","EATEN","EATER","EAVES","EBBED","EBONY","ECHOS","ECLAT","EDEMA","EDGED","EDGER","EDGES","EDICT","EDIFY","EDITS","EDUCE","EDUCT","EERIE","EFFED","EGADS","EGEST","EGGED","EGGER","EGRET","EIDER","EIDOS","EIGHT","EIKON","EJECT","EKING","ELAND","ELATE","ELBOW","ELDER","ELECT","ELEGY","ELEMI","ELFIN","ELIDE","ELITE","ELOPE","ELUDE","ELUTE","ELVER","ELVES","EMAIL","EMBAY","EMBED","EMBER","EMBOW","EMBUS","EMCEE","EMEND","EMERY","EMIRS","EMITS","EMMER","EMMET","EMOJI","EMOTE","EMPTY","ENACT","ENATE","ENDED","ENDOW","ENDUE","ENEMA","ENEMY","ENGIN","ENJOY","ENNUI","ENSUE","ENTER","ENTRY","ENVOI","ENVOY","EOSIN","EPACT","EPEES","EPHAH","EPHOD","EPHOR","EPICS","EPOCH","EPODE","EPOXY","EQUAL","EQUIP","EQUIV","ERASE","ERECT","ERGOT","ERNES","ERODE","EROSE","ERRED","ERROR","ERUCT","ERUGO","ERUPT","ESKER","ESSAY","ESTER","ESTOP","ETHER","ETHIC","ETHOS","ETHYL","ETNAS","ETUDE","ETUIS","EUROS","EVADE","EVENS","EVENT","EVERT","EVERY","EVICT","EVILS","EVITE","EVOKE","EWERS","EXACT","EXALT","EXAMS","EXCEL","EXEAT","EXECS","EXERT","EXILE","EXINE","EXIST","EXITS","EXONS","EXPAT","EXPEL","EXPOS","EXTOL","EXTRA","EXUDE","EXULT","EXURB","EYING","EYRAS","EYRIR","FABLE","FACED","FACER","FACES","FACET","FACTS","FADDY","FADED","FADER","FADES","FADGE","FAENA","FAFFS","FAGOT","FAILS","FAINT","FAIRS","FAIRY","FAITH","FAKED","FAKER","FAKES","FAKIR","FALLS","FALSE","FAMED","FANCY","FANGO","FANGS","FANNY","FANON","FAQIR","FARAD","FARCE","FARCI","FARCY","FARED","FARER","FARES","FARMS","FARTS","FASTS","FATAL","FATED","FATES","FATLY","FATSO","FATTY","FATWA","FAUGH","FAULT","FAUNA","FAUNS","FAUVE","FAVES","FAVOR","FAVUS","FAWNS","FAXED","FAXES","FAYER","FAZED","FAZES","FEARS","FEAST","FEATS","FECAL","FECES","FECIT","FEEDS","FEELS","FEEZE","FEIGN","FEINT","FELID","FELLA","FELLS","FELLY","FELON","FELTS","FEMME","FEMUR","FENCE","FENDS","FENNY","FEOFF","FERAL","FERIA","FERMI","FERNS","FERNY","FERRY","FESTS","FETAL","FETCH","FETED","FETES","FETID","FETOR","FETUS","FEUAR","FEUDS","FEVER","FEWER","FEYLY","FIATS","FIBER","FIBRE","FICHE","FICHU","FICUS","FIDGE","FIEFS","FIELD","FIEND","FIERY","FIFER","FIFES","FIFTH","FIFTY","FIGHT","FILAR","FILCH","FILED","FILER","FILES","FILET","FILLS","FILLY","FILMS","FILMY","FILTH","FILUM","FINAL","FINCH","FINDS","FINED","FINER","FINES","FINIS","FINKS","FINNY","FIRED","FIRER","FIRES","FIRMS","FIRRY","FIRST","FIRTH","FISCS","FISHY","FISTS","FITCH","FITLY","FIVER","FIVES","FIXED","FIXER","FIXES","FIZZY","FJELD","FJORD","FLACK","FLAGS","FLAIL","FLAIR","FLAKE","FLAKY","FLAME","FLANK","FLANS","FLAPS","FLARE","FLASH","FLASK","FLATS","FLAWS","FLAWY","FLAYS","FLEAM","FLEAS","FLECK","FLEER","FLEES","FLEET","FLESH","FLEWS","FLICK","FLIED","FLIER","FLIES","FLING","FLINT","FLIPS","FLIRT","FLITE","FLITS","FLOAT","FLOCK","FLOCS","FLOES","FLOGS","FLONG","FLOOD","FLOOR","FLOPS","FLORA","FLORY","FLOSS","FLOUR","FLOUT","FLOWN","FLOWS","FLUBS","FLUES","FLUFF","FLUID","FLUKE","FLUKY","FLUME","FLUMP","FLUNG","FLUNK","FLUOR","FLUSH","FLUTE","FLUTY","FLYBY","FLYER","FLYTE","FOALS","FOAMS","FOAMY","FOCAL","FOCUS","FOEHN","FOGGY","FOILS","FOIST","FOLDS","FOLIA","FOLIC","FOLIE","FOLIO","FOLKS","FOLLY","FONTS","FOODS","FOOLS","FOOTS","FOOTY","FORAY","FORBY","FORCE","FORDO","FORDS","FORES","FORGE","FORGO","FORKS","FORME","FORMS","FORTE","FORTH","FORTS","FORTY","FORUM","FOSSA","FOSSE","FOULS","FOUND","FOUNT","FOURS","FOVEA","FOWLS","FOXED","FOXES","FOYER","FRACK","FRAGS","FRAIL","FRAME","FRANC","FRANK","FRAPS","FRATS","FRAUD","FRAYS","FREAK","FREED","FREER","FREES","FREMD","FRENA","FRESH","FRETS","FRIAR","FRIED","FRIES","FRIGS","FRILL","FRISK","FRITH","FRITZ","FRIZE","FRIZZ","FROCK","FROGS","FROND","FRONS","FRONT","FRORE","FROSH","FROST","FROTH","FROWN","FROZE","FRUIT","FRUMP","FRYER","FUBSY","FUCKS","FUCUS","FUDGE","FUELS","FUGAL","FUGGY","FUGUE","FULLS","FULLY","FUMED","FUMES","FUNDS","FUNGI","FUNGO","FUNKS","FUNKY","FUNNY","FURAN","FURLS","FUROR","FURRY","FURZE","FURZY","FUSED","FUSEE","FUSES","FUSIL","FUSSY","FUSTY","FUTON","FUZZY","GABBY","GABLE","GADID","GAFFE","GAFFS","GAILY","GAINS","GAITS","GALAH","GALAS","GALEA","GALES","GALLS","GALOP","GAMBA","GAMED","GAMER","GAMES","GAMIC","GAMIN","GAMMA","GAMMY","GAMPS","GAMUT","GANEF","GANGS","GANJA","GANOF","GAPED","GAPES","GAPPY","GARBS","GARTH","GASES","GASPS","GASSY","GATED","GATER","GATES","GATOR","GAUDS","GAUDY","GAUGE","GAUNT","GAURS","GAUSS","GAUZE","GAUZY","GAVEL","GAWKS","GAWKY","GAWPS","GAYER","GAYLY","GAZED","GAZER","GAZES","GEANS","GEARS","GECKO","GEEKS","GEEKY","GEESE","GEEST","GELDS","GELID","GEMMA","GEMMY","GEMOT","GENES","GENET","GENIC","GENIE","GENII","GENIP","GENIT","GENOA","GENRE","GENRO","GENTS","GENUS","GEODE","GEOID","GERAH","GERMS","GERMY","GESSO","GETUP","GHATS","GHAZI","GHEES","GHOST","GHOUL","GHYLL","GIANT","GIBED","GIBER","GIBES","GIDDY","GIFTS","GIGOT","GIGUE","GILDS","GILLS","GILTS","GIMEL","GIMME","GIMPS","GIMPY","GINNY","GIPON","GIPSY","GIRDS","GIRLS","GIRLY","GIROS","GIRTH","GIRTS","GITES","GIVEN","GIVER","GIVES","GIZMO","GLACE","GLADE","GLADS","GLAIR","GLAND","GLANS","GLARE","GLARY","GLASS","GLAZE","GLEAM","GLEAN","GLEBE","GLEDE","GLEET","GLENS","GLIAS","GLIDE","GLINT","GLITZ","GLOAM","GLOAT","GLOBE","GLOBS","GLOMS","GLOOM","GLORY","GLOSS","GLOVE","GLOWS","GLOZE","GLUED","GLUES","GLUEY","GLUME","GLUON","GLUTS","GLYPH","GNARL","GNASH","GNATS","GNAWS","GNOME","GOADS","GOALS","GOATS","GODLY","GOERS","GOFER","GOING","GOLDS","GOLEM","GOLFS","GOLLY","GONAD","GONER","GONGS","GONIF","GONKS","GONNA","GONZO","GOODS","GOODY","GOOEY","GOOFS","GOOFY","GOOKS","GOONS","GOOSE","GOOSY","GOPAK","GORAL","GORED","GORES","GORGE","GORPS","GORSE","GOTHS","GOTTA","GOUGE","GOURD","GOUTY","GOWAN","GOWNS","GOYIM","GRABS","GRACE","GRADE","GRADS","GRAFT","GRAIL","GRAIN","GRAMS","GRAND","GRANS","GRANT","GRAPE","GRAPH","GRASP","GRASS","GRATE","GRAVE","GRAVY","GRAYS","GRAZE","GREAT","GREBE","GREED","GREEN","GREET","GREPS","GRIDE","GRIDS","GRIEF","GRIFT","GRILL","GRIME","GRIMY","GRIND","GRINS","GRIPE","GRIPS","GRIST","GRITH","GRITS","GROAN","GROAT","GROIN","GROKS","GROOM","GROPE","GROSS","GROSZ","GROTS","GROUP","GROUT","GROVE","GROWL","GROWN","GROWS","GRUBS","GRUEL","GRUES","GRUFF","GRUME","GRUMP","GRUNT","GUACO","GUANO","GUANS","GUARD","GUARS","GUAVA","GUCKS","GUESS","GUEST","GUIDE","GUILD","GUILE","GUILT","GUISE","GULAG","GULAS","GULCH","GULES","GULFS","GULLS","GULLY","GULPS","GUMBO","GUMMA","GUMMY","GUNGE","GUNGY","GUNKY","GUNNY","GUPPY","GURGE","GURUS","GUSHY","GUSSY","GUSTO","GUSTS","GUSTY","GUTSY","GUTTA","GUTTY","GUYED","GUYOT","GYPSY","GYRAL","GYRES","GYRON","GYROS","GYRUS","GYVED","GYVES","HABIT","HACEK","HACKS","HADES","HADST","HAFIZ","HAFTS","HAIKU","HAILS","HAIRS","HAIRY","HAJES","HAJJI","HAKES","HAKIM","HALAL","HALED","HALER","HALES","HALLO","HALLS","HALMS","HALON","HALOS","HALTS","HALVE","HAMAL","HAMES","HAMMY","HAMZA","HANCE","HANDS","HANDY","HANGS","HANKS","HAOLE","HAPLY","HAPPY","HARDS","HARDY","HARED","HAREM","HARES","HARKS","HARMS","HARPS","HARPY","HARRY","HARSH","HARTS","HASPS","HASTE","HASTY","HATCH","HATED","HATER","HATES","HAUGH","HAULM","HAULS","HAUNT","HAUTE","HAVEN","HAVER","HAVES","HAVOC","HAWED","HAWKS","HAWSE","HAYED","HAZAN","HAZED","HAZEL","HAZER","HAZES","HDQRS","HEADS","HEADY","HEALS","HEAPS","HEARD","HEARS","HEART","HEATH","HEATS","HEAVE","HEAVY","HEDER","HEDGE","HEEDS","HEELS","HEFTS","HEFTY","HEIRS","HEIST","HELIX","HELLO","HELLS","HELMS","HELOT","HELPS","HELVE","HEMAL","HEMIC","HEMIN","HENCE","HENGE","HENNA","HENRY","HERBS","HERBY","HERDS","HERES","HERON","HERTZ","HETHS","HEWED","HEWER","HEXAD","HEXED","HEXER","HEXES","HEXYL","HICKS","HIDED","HIDER","HIDES","HIGHS","HIGHT","HIJAB","HIKED","HIKER","HIKES","HILLS","HILLY","HILTS","HILUM","HINDS","HINGE","HINGS","HINNY","HINTS","HIPPO","HIPPY","HIRED","HIRER","HIRES","HITCH","HIVED","HIVES","HOARD","HOARS","HOARY","HOBBY","HOBOS","HOCKS","HOCUS","HOERS","HOGAN","HOICK","HOIST","HOKED","HOKES","HOKEY","HOKKU","HOKUM","HOLDS","HOLED","HOLES","HOLEY","HOLLY","HOMED","HOMER","HOMES","HOMEY","HOMOS","HONED","HONER","HONES","HONEY","HONKS","HONKY","HONOR","HOOCH","HOODS","HOOEY","HOOFS","HOOKS","HOOKY","HOOPS","HOOTS","HOPED","HOPES","HORAH","HORAL","HORAS","HORDE","HORME","HORNS","HORNY","HOROL","HORSE","HORST","HOSED","HOSES","HOSTA","HOSTS","HOTEL","HOTLY","HOUGH","HOUND","HOURI","HOURS","HOUSE","HOVEL","HOVER","HOWDY","HOWLS","HUBBY","HUFFS","HUFFY","HUGER","HULAS","HULKS","HULKY","HULLS","HUMAN","HUMIC","HUMID","HUMOR","HUMPH","HUMPS","HUMPY","HUMUS","HUNCH","HUNKS","HUNKY","HUNTS","HURDS","HURLS","HURRY","HURST","HURTS","HUSKS","HUSKY","HUSSY","HUTCH","HYDRA","HYDRO","HYENA","HYING","HYMEN","HYMNS","HYOID","HYPED","HYPER","HYPES","HYPHA","HYPOS","HYRAX","HYSON","IAMBI","IAMBS","ICHOR","ICIER","ICILY","ICING","ICONS","ICTUS","IDEAL","IDEAS","IDIOM","IDIOT","IDLED","IDLER","IDLES","IDOLS","IDYLL","IGLOO","IHRAM","ILEAC","ILEAL","ILEUM","ILEUS","ILIAC","ILIUM","ILLUS","IMAGE","IMAGO","IMAMS","IMBUE","IMIDE","IMINE","IMMIX","IMPEL","IMPER","IMPLY","INANE","INAPT","INBOX","INCED","INCUR","INCUS","INDEF","INDEX","INDIC","INDIE","INDUC","INEPT","INERT","INFER","INFIN","INFIX","INFRA","INFTH","INGLE","INGOT","INION","INKED","INKLE","INLAY","INLET","INNER","INNIT","INNTH","INORG","INPUT","INSET","INSTR","INTEL","INTER","INTIS","INTRO","INURE","INURN","IOCTL","IODIC","IONIC","IOTAS","IRADE","IRATE","IRKED","IRONS","IRONY","IRREG","ISLES","ISLET","ISSEI","ISSUE","ISTLE","ITCHY","ITEMS","IVIED","IVIES","IVORY","IXTLE","IZARD","JABOT","JACAL","JACKS","JADED","JADES","JAGGY","JAILS","JAKES","JALAP","JAMBS","JAMMY","JAPAN","JAPED","JAPER","JAPES","JATOS","JAUNT","JAWED","JAZZY","JEANS","JEBEL","JEEPS","JEERS","JELLO","JELLS","JELLY","JEMMY","JENNY","JERID","JERKS","JERKY","JERRY","JESTS","JETTY","JEWEL","JIBED","JIBES","JIFFS","JIFFY","JIHAD","JILTS","JIMMY","JINGO","JINKS","JINNI","JIVED","JIVER","JIVES","JIVEY","JOCKO","JOCKS","JOEYS","JOHNS","JOINS","JOINT","JOIST","JOKED","JOKER","JOKES","JOKEY","JOLLY","JOLTS","JOLTY","JORUM","JOULE","JOUST","JOWLS","JOWLY","JOYED","JUDGE","JUGAL","JUGUM","JUICE","JUICY","JUJUS","JULEP","JUMBO","JUMPS","JUMPY","JUNCO","JUNKS","JUNKY","JUNTA","JUNTO","JUPON","JURAL","JURAT","JUREL","JUROR","JUTTY","KAFIR","KAIAK","KAILS","KAKIS","KALIF","KALIS","KALPA","KANJI","KANZU","KAONS","KAPHS","KAPOK","KAPPA","KAPUT","KARAT","KARMA","KARST","KARTS","KASHA","KAURI","KAVAS","KAYAK","KAYOS","KAZOO","KEBAB","KEDGE","KEELS","KEENS","KEEPS","KELLY","KENAF","KENDO","KENTE","KEPIS","KERNE","KETCH","KEVEL","KEYED","KHAKI","KHANS","KHEDA","KHOUM","KIANG","KIBES","KICKS","KICKY","KIDDO","KIKES","KILLS","KILNS","KILOS","KILTS","KINAS","KINDA","KINDS","KINES","KINGS","KININ","KINKS","KINKY","KINOS","KIOSK","KITED","KITES","KITTY","KIWIS","KLONG","KLOOF","KLUGE","KLUTZ","KNACK","KNAPS","KNAVE","KNEAD","KNEED","KNEEL","KNEES","KNELL","KNELT","KNIFE","KNISH","KNITS","KNOBS","KNOCK","KNOLL","KNOTS","KNOUT","KNOWN","KNOWS","KNURL","KOALA","KOANS","KOBOS","KOHLS","KOINE","KOLAS","KOOKS","KOOKY","KOPJE","KORMA","KOSES","KOTOS","KRAAL","KRAFT","KRAIT","KRAUT","KRILL","KRONA","KRONE","KROON","KUDOS","KUDUS","KUDZU","KUKRI","KULAK","KURUS","KVASS","KYATS","KYLES","KYLIX","LABEL","LABIA","LABOR","LACED","LACER","LACES","LACKS","LADED","LADEN","LADES","LADLE","LAGAN","LAGER","LAIRD","LAIRS","LAITY","LAKER","LAKES","LAKHS","LAMAS","LAMBS","LAMED","LAMER","LAMES","LAMIA","LAMPS","LANAI","LANCE","LANDS","LANES","LANKY","LAPEL","LAPIN","LAPSE","LARCH","LARDS","LARDY","LARES","LARGE","LARGO","LARKS","LARUM","LARVA","LASED","LASER","LASES","LASSO","LASTS","LATCH","LATED","LATER","LATEX","LATHE","LATHI","LATHS","LATHY","LATKE","LATTE","LAUDS","LAUGH","LAVAS","LAVED","LAVER","LAVES","LAWNS","LAXER","LAXLY","LAYER","LAYUP","LAZAR","LAZED","LAZES","LEACH","LEADS","LEAFS","LEAFY","LEAKS","LEAKY","LEANS","LEANT","LEAPS","LEAPT","LEARN","LEASE","LEASH","LEAST","LEAVE","LEDGE","LEECH","LEEKS","LEERS","LEERY","LEFTS","LEFTY","LEGAL","LEGES","LEGGY","LEGIT","LEMAN","LEMMA","LEMME","LEMON","LEMUR","LENDS","LENIS","LENTO","LEONE","LEPER","LEPTA","LETHE","LETUP","LEVEE","LEVEL","LEVER","LEVIN","LEWIS","LEXER","LEXIS","LIANA","LIARD","LIARS","LIBEL","LIBER","LIBRA","LICIT","LICKS","LIDOS","LIEGE","LIENS","LIFER","LIFTS","LIGAN","LIGER","LIGHT","LIKED","LIKEN","LIKER","LIKES","LILAC","LILOS","LILTS","LIMBO","LIMBS","LIMED","LIMEN","LIMES","LIMEY","LIMIT","LIMNS","LIMOS","LIMPS","LINDY","LINED","LINEN","LINER","LINES","LINGO","LINGS","LININ","LINKS","LINTS","LINTY","LIONS","LIPID","LIPPY","LISLE","LISPS","LISTS","LITAS","LITER","LITHE","LITHO","LIVED","LIVEN","LIVER","LIVES","LIVID","LIVRE","LLAMA","LLANO","LOACH","LOADS","LOAFS","LOAMS","LOAMY","LOANS","LOATH","LOBAR","LOBBY","LOBED","LOBES","LOCAL","LOCKS","LOCOS","LOCUM","LOCUS","LODEN","LODES","LODGE","LOESS","LOFTS","LOFTY","LOGAN","LOGES","LOGGY","LOGIA","LOGIC","LOGIN","LOGON","LOGOS","LOINS","LOLLS","LOLLY","LONER","LONGE","LONGS","LOOBY","LOOKS","LOOMS","LOONS","LOONY","LOOPS","LOOPY","LOOSE","LOOTS","LOPED","LOPER","LOPES","LOPPY","LORAN","LORDS","LORIS","LORRY","LOSEL","LOSER","LOSES","LOTAS","LOTIC","LOTTO","LOTUS","LOUGH","LOUIS","LOUPE","LOURS","LOUSE","LOUSY","LOUTS","LOVAT","LOVED","LOVER","LOVES","LOVEY","LOWED","LOWER","LOWLY","LOYAL","LUAUS","LUBED","LUBES","LUBRA","LUCID","LUCKS","LUCKY","LUCRE","LUDIC","LUFFA","LUFFS","LUGED","LUGES","LULLS","LULUS","LUMEN","LUMPS","LUMPY","LUNAR","LUNCH","LUNGE","LUNGI","LUNGS","LUPUS","LURCH","LURED","LURES","LUREX","LURGY","LURID","LURKS","LUSHY","LUSTS","LUSTY","LUTES","LUXES","LWEIS","LXVII","LYING","LYMPH","LYNCH","LYRES","LYRIC","LYSES","LYSIN","LYSIS","LYSSA","LYTIC","LYTTA","MACAW","MACED","MACES","MACHO","MACLE","MACRO","MADAM","MADLY","MAFIA","MAGES","MAGIC","MAGMA","MAGUS","MAIDS","MAILS","MAIMS","MAINS","MAIZE","MAJOR","MAKER","MAKES","MAKOS","MALAR","MALES","MALLS","MALTS","MALTY","MAMAS","MAMBA","MAMBO","MAMEY","MAMMA","MAMMY","MANAS","MANAT","MANED","MANES","MANGA","MANGE","MANGO","MANGY","MANIA","MANIC","MANKY","MANLY","MANNA","MANOR","MANSE","MANTA","MANUF","MAPLE","MARAS","MARCH","MARCS","MARES","MARGE","MARIA","MARKA","MARKS","MARLS","MARLY","MARRY","MARSH","MARTS","MASER","MASKS","MASON","MASSE","MASSY","MASTS","MATCH","MATED","MATER","MATES","MATEY","MATIN","MATTE","MATZO","MAULS","MAUND","MAUVE","MAVEN","MAVIS","MAXED","MAXES","MAXIM","MAXIS","MAYBE","MAYOR","MAYST","MAZER","MAZES","MEALS","MEALY","MEANS","MEANT","MEANY","MEATS","MEATY","MECCA","MEDAL","MEDIA","MEDIC","MEETS","MEINY","MELDS","MELEE","MELIC","MELON","MELTS","MEMES","MEMOS","MENDS","MENUS","MEOWS","MERCY","MERES","MERGE","MERIT","MERLE","MERRY","MESAS","MESIC","MESNE","MESON","MESSY","METAL","METED","METER","METES","METHS","METIC","METIS","METRO","MEWED","MEWLS","MEZZO","MICKS","MICRO","MIDDY","MIDGE","MIDIS","MIDST","MIENS","MIFFS","MIFFY","MIGHT","MIKED","MIKES","MIKVA","MILCH","MILER","MILES","MILFS","MILIA","MILIT","MILKS","MILKY","MILLS","MILOS","MILTS","MIMED","MIMER","MIMES","MIMIC","MINCE","MINDS","MINED","MINER","MINES","MINGY","MINIM","MINIS","MINKE","MINKS","MINOR","MINTS","MINTY","MINUS","MIRED","MIRES","MIRIN","MIRTH","MIRZA","MISDO","MISER","MISSY","MISTS","MISTY","MITER","MITES","MITIS","MITTS","MIXED","MIXER","MIXES","MNEME","MOANS","MOATS","MOCHA","MOCKS","MODAL","MODEL","MODEM","MODES","MOGGY","MOGUL","MOHUR","MOILS","MOIRE","MOIST","MOKES","MOLAL","MOLAR","MOLAS","MOLDS","MOLDY","MOLES","MOLLS","MOLLY","MOLTS","MOMMY","MONAD","MONAS","MONDE","MONEY","MONGO","MONKS","MONTE","MONTH","MOOCH","MOODS","MOODY","MOOED","MOONS","MOONY","MOORS","MOOSE","MOOTS","MOPED","MOPER","MOPES","MOPEY","MORAL","MORAY","MOREL","MORES","MORNS","MORON","MORPH","MORSE","MOSEY","MOSSY","MOTEL","MOTES","MOTET","MOTHS","MOTHY","MOTIF","MOTOR","MOTTE","MOTTO","MOUES","MOULD","MOULT","MOUND","MOUNT","MOURN","MOUSE","MOUSY","MOUTH","MOVED","MOVER","MOVES","MOVIE","MOWED","MOWER","MOXIE","MUCIN","MUCKS","MUCKY","MUCOR","MUCRO","MUCUS","MUDDY","MUDRA","MUFFS","MUFTI","MUGGY","MUJIK","MULCH","MULCT","MULES","MULEY","MULLA","MULLS","MULTI","MUMMY","MUMPS","MUNCH","MUNGS","MUONS","MURAL","MUREX","MURKS","MURKY","MURRE","MUSED","MUSER","MUSES","MUSHY","MUSIC","MUSKY","MUSSY","MUSTH","MUSTS","MUSTY","MUTED","MUTER","MUTES","MUTTS","MUZAK","MUZZY","MYALL","MYCOL","MYNAS","MYRRH","MYTHS","NAANS","NABOB","NACHO","NACRE","NADIR","NAEVI","NAIAD","NAIFS","NAILS","NAIRA","NAIVE","NAKED","NAKER","NAKFA","NAMED","NAMER","NAMES","NANCE","NANCY","NANNY","NAPES","NAPPE","NAPPY","NARCS","NARDS","NARES","NARIS","NARKY","NASAL","NASTY","NATAL","NATCH","NATES","NATTY","NAVAL","NAVAR","NAVEL","NAVES","NAVIG","NAVVY","NAWAB","NEAPS","NEARS","NEATH","NECKS","NEEDS","NEEDY","NEGRO","NEGUS","NEIGH","NELLY","NEPER","NERAL","NERDS","NERDY","NERVE","NERVY","NESTS","NETTY","NEUME","NEVER","NEVUS","NEWEL","NEWER","NEWLY","NEWSY","NEWTS","NEXUS","NGWEE","NICER","NICHE","NICKS","NIDUS","NIECE","NIFFY","NIFTY","NIGGA","NIGHT","NIHIL","NIMBI","NIMBY","NINES","NINJA","NINNY","NINON","NINTH","NIPAS","NIPPY","NISEI","NISUS","NITER","NITID","NITRO","NITTY","NIVAL","NIXED","NIXES","NOBBY","NOBLE","NOBLY","NOCKS","NODAL","NODDY","NODES","NODUS","NOELS","NOHOW","NOISE","NOISY","NOMAD","NOMEN","NONCE","NONES","NONET","NOOKS","NOOKY","NOONS","NOOSE","NORIA","NORMS","NORTH","NOSED","NOSES","NOSEY","NOTCH","NOTED","NOTES","NOTUM","NOUNS","NOVAE","NOVAS","NOVEL","NOWAY","NUBBY","NUDER","NUDES","NUDGE","NUKED","NUKES","NULLS","NUMBS","NUMEN","NUMIS","NURSE","NUTTY","NYALA","NYLON","NYMPH","OAKEN","OAKUM","OARED","OASES","OASIS","OASTS","OATEN","OATHS","OBEAH","OBELI","OBESE","OBEYS","OBITS","OBJET","OBOES","OBOLI","OCCAS","OCCUR","OCEAN","OCHER","OCKER","OCREA","OCTAD","OCTAL","OCTAN","OCTET","OCULI","ODDER","ODDLY","ODEON","ODEUM","ODIUM","ODORS","OFFAL","OFFED","OFFER","OFTEN","OGEED","OGHAM","OGIVE","OGLED","OGLER","OGLES","OGRES","OHMIC","OILED","OILER","OINKS","OKAPI","OKAYS","OKRAS","OLDEN","OLDER","OLDIE","OLEIC","OLEIN","OLEUM","OLIVE","OLLAS","OLOGY","OMASA","OMBER","OMBRE","OMEGA","OMENS","OMITS","ONION","ONSET","ONTIC","OOHED","OOMPH","OOTID","OOZED","OOZES","OPAHS","OPALS","OPENS","OPERA","OPINE","OPING","OPIUM","OPTED","OPTIC","ORALS","ORANG","ORATE","ORBIT","ORCAS","ORDER","OREAD","ORGAN","ORIEL","ORLOP","ORNIS","ORRIS","OSIER","OSMIC","OTHER","OTTAR","OTTER","OUGHT","OUNCE","OUPHE","OUSEL","OUSTS","OUTDO","OUTED","OUTER","OUTGO","OUTRE","OUTTA","OUZEL","OUZOS","OVALS","OVARY","OVATE","OVENS","OVERS","OVERT","OVINE","OVOID","OVOLO","OVULE","OWING","OWLET","OWNED","OWNER","OXBOW","OXIDE","OXIME","OZONE","PACED","PACER","PACES","PACEY","PACHA","PACKS","PACTS","PADDY","PADRE","PAEAN","PAEON","PAGAN","PAGED","PAGER","PAGES","PAILS","PAINS","PAINT","PAIRS","PAISA","PALED","PALEO","PALER","PALES","PALLS","PALLY","PALMS","PALMY","PALSY","PAMPA","PANDA","PANED","PANEL","PANES","PANGA","PANGS","PANIC","PANNE","PANSY","PANTO","PANTS","PAPAL","PAPAS","PAPER","PAPPY","PARAS","PARCH","PARED","PARER","PARES","PAREU","PARKA","PARKS","PARKY","PAROL","PARRS","PARRY","PARSE","PARTS","PARTY","PARVE","PASHA","PASHM","PASSE","PASTA","PASTE","PASTS","PASTY","PATCH","PATEN","PATES","PATHS","PATIN","PATIO","PATLY","PATSY","PATTY","PAUSE","PAVAN","PAVED","PAVES","PAVID","PAVIS","PAWED","PAWLS","PAWNS","PAXES","PAYED","PAYEE","PAYER","PEACE","PEACH","PEAGS","PEAKS","PEAKY","PEALS","PEANS","PEARL","PEARS","PEART","PEATY","PEBAS","PECAN","PECKS","PEDAL","PEEKS","PEELS","PEENS","PEEPS","PEERS","PEEVE","PEKAN","PEKES","PEKOE","PELTS","PENAL","PENCE","PENDS","PENIS","PENNA","PENNE","PENNI","PENNY","PEONS","PEONY","PEPPY","PERCH","PERDU","PERIL","PERIS","PERKS","PERKY","PERMS","PERRY","PERSE","PERVS","PESKY","PESOS","PESTO","PESTS","PESTY","PETAL","PETER","PETIT","PETTY","PEWEE","PEWIT","PHAGE","PHASE","PHEON","PHIAL","PHISH","PHLOX","PHONE","PHONS","PHONY","PHOTO","PHOTS","PHREN","PHYLA","PHYLE","PIANO","PICKS","PICKY","PICOT","PICUL","PIECE","PIERS","PIETA","PIETY","PIGGY","PIING","PIKAS","PIKED","PIKER","PIKES","PILAF","PILCH","PILED","PILEI","PILES","PILLS","PILOT","PIMPS","PINCH","PINED","PINES","PINEY","PINGS","PINKO","PINKS","PINKY","PINNA","PINNY","PINON","PINTA","PINTO","PINTS","PINUP","PIONS","PIOUS","PIPED","PIPER","PIPES","PIPIT","PIQUE","PIROG","PISTE","PITAS","PITCH","PITHS","PITHY","PITON","PITTA","PIVOT","PIXEL","PIXIE","PIZZA","PLACE","PLAGE","PLAID","PLAIN","PLAIT","PLANE","PLANK","PLANS","PLANT","PLASH","PLASM","PLATE","PLATS","PLATY","PLAYA","PLAYS","PLAZA","PLEAD","PLEAS","PLEAT","PLEBE","PLEBS","PLENA","PLICA","PLIED","PLIER","PLIES","PLINK","PLOCE","PLODS","PLONK","PLOPS","PLOTS","PLOWS","PLOYS","PLUCK","PLUGS","PLUMB","PLUME","PLUMP","PLUMS","PLUMY","PLUNK","PLUSH","POACH","POCKS","POCKY","PODDY","POEMS","POESY","POETS","POGEY","POGGE","POILU","POINT","POISE","POKED","POKER","POKES","POKEY","POLAR","POLED","POLER","POLES","POLIO","POLIS","POLIT","POLKA","POLLS","POLYP","POLYS","POMES","POMMY","PONCE","PONCY","PONDS","PONES","PONGS","POOCH","POODS","POOED","POOFS","POOHS","POOKA","POOLS","POONS","POOPS","POPES","POPPA","POPPY","POPUP","PORCH","PORED","PORER","PORES","PORGY","PORKY","PORNO","PORTS","POSED","POSER","POSES","POSIT","POSSE","POSTS","POTTO","POTTY","POUCH","POUFS","POULT","POUND","POURS","POUTS","POUTY","POWER","POXES","PRAMS","PRANA","PRANG","PRANK","PRASE","PRATE","PRATS","PRAWN","PRAYS","PREEN","PREPS","PRESA","PRESS","PREXY","PREYS","PRICE","PRICK","PRIDE","PRIED","PRIER","PRIES","PRIGS","PRIME","PRIMO","PRIMP","PRINK","PRINT","PRION","PRIOR","PRISM","PRIVY","PRIZE","PROBE","PRODS","PROEM","PROFS","PROLE","PROMO","PROMS","PRONE","PRONG","PROOF","PROPR","PROPS","PROSE","PROSY","PROUD","PROVE","PROWL","PROWS","PROXY","PRUDE","PRUNE","PSALM","PSEUD","PSHAW","PSOAS","PSYCH","PUBES","PUBIC","PUBIS","PUCKA","PUCKS","PUDGY","PUFFS","PUFFY","PUKED","PUKES","PUKKA","PULAS","PULED","PULER","PULES","PULLS","PULPS","PULPY","PULSE","PUMAS","PUMPS","PUNCH","PUNGS","PUNGY","PUNKS","PUNTS","PUPAE","PUPAL","PUPIL","PUPPY","PUREE","PURER","PURGE","PURLS","PURRS","PURSE","PURSY","PUSHY","PUSSY","PUTTO","PUTTS","PUTTY","PWNED","PYGMY","PYLON","PYOID","PYRES","PYXES","PYXIE","PZAZZ","QIBLA","QOPHS","QUACK","QUADS","QUAFF","QUAIL","QUAKE","QUAKY","QUALE","QUALM","QUANT","QUARK","QUART","QUASH","QUASI","QUASS","QUAYS","QUEAN","QUEEN","QUEER","QUELL","QUERN","QUERY","QUEST","QUEUE","QUICK","QUIDS","QUIET","QUIFF","QUILL","QUILT","QUINE","QUINS","QUINT","QUIPS","QUIPU","QUIRE","QUIRK","QUIRT","QUITE","QUITS","QUOIN","QUOIT","QUOTA","QUOTE","QUOTH","RABBI","RABID","RACED","RACER","RACES","RACKS","RACON","RADAR","RADII","RADIO","RADIX","RADON","RAFTS","RAGAS","RAGED","RAGES","RAGGA","RAGIS","RAIDS","RAILS","RAINS","RAINY","RAISE","RAJAH","RAJES","RAKED","RAKER","RAKES","RALES","RALLY","RALPH","RAMEN","RAMIE","RAMPS","RANCE","RANCH","RANDY","RANEE","RANGE","RANGY","RANKS","RANTS","RAPED","RAPER","RAPES","RAPID","RARED","RARER","RARES","RASPS","RASPY","RATAL","RATAN","RATED","RATEL","RATER","RATES","RATHE","RATIO","RATTY","RAVED","RAVEL","RAVEN","RAVER","RAVES","RAVIN","RAWER","RAYON","RAZED","RAZEE","RAZES","RAZOR","REACH","REACT","READS","READY","REALM","REALS","REAMS","REAPS","REARM","REARS","REATA","REAVE","REBAR","REBEC","REBEL","REBID","REBUS","REBUT","RECAP","RECCE","RECON","RECTI","RECTO","RECUR","RECUT","REDAN","REDID","REDLY","REDUX","REDYE","REEDS","REEDY","REEFS","REEKS","REEKY","REELS","REEST","REEVE","REFER","REFIT","REFIX","REFRY","REFTH","REGAL","REGEX","REHAB","REIFY","REIGN","REINS","REIVE","REJIG","RELAX","RELAY","RELIC","REMAP","REMEX","REMIT","REMIX","RENAL","RENDS","RENEW","RENIN","RENTS","REORG","REPAY","REPEL","REPLY","REPPS","REPRO","RERAN","RERUN","RESAT","RESET","RESEW","RESIN","RESIT","RESOW","RESTS","RETCH","RETIE","RETRO","RETRY","REUSE","REVEL","REVET","REVUE","REWED","RHEAS","RHEUM","RHINO","RHOMB","RHUMB","RHYME","RIALS","RIANT","RIATA","RICED","RICER","RICES","RICKS","RIDER","RIDES","RIDGE","RIDGY","RIELS","RIFER","RIFFS","RIFLE","RIFTS","RIGHT","RIGID","RIGOR","RILED","RILES","RILLE","RILLS","RIMED","RIMES","RINDS","RINGS","RINKS","RINSE","RIOTS","RIPEN","RIPER","RISEN","RISER","RISES","RISHI","RISKS","RISKY","RITES","RITZY","RIVAL","RIVED","RIVEN","RIVER","RIVES","RIVET","RIYAL","ROACH","ROADS","ROAMS","ROANS","ROARS","ROAST","ROBED","ROBES","ROBIN","ROBLE","ROBOT","ROCKS","ROCKY","RODEO","ROGER","ROGUE","ROILS","ROILY","ROLES","ROLLS","ROMAN","ROMEO","ROMPS","RONDE","RONDO","ROODS","ROOFS","ROOKS","ROOKY","ROOMS","ROOMY","ROOSE","ROOST","ROOTS","ROPED","ROPER","ROPES","ROQUE","ROSES","ROSIN","ROTAS","ROTLS","ROTOR","ROUES","ROUGE","ROUGH","ROUND","ROUSE","ROUST","ROUTE","ROUTS","ROVED","ROVER","ROVES","ROWAN","ROWDY","ROWED","ROWEL","ROWER","ROYAL","RUBEL","RUBES","RUBLE","RUCHE","RUCKS","RUDDS","RUDDY","RUDER","RUFFS","RUGBY","RUING","RUINS","RULED","RULER","RULES","RUMAL","RUMBA","RUMEN","RUMMY","RUMOR","RUMPS","RUNES","RUNGS","RUNIC","RUNNY","RUNTS","RUNTY","RUPEE","RURAL","RUSES","RUSHY","RUSKS","RUSTS","RUSTY","RUTHS","RUTTY","SABER","SABIN","SABLE","SABOT","SABRA","SABRE","SACKS","SACRA","SADES","SADHU","SADLY","SAFER","SAFES","SAGAS","SAGER","SAGES","SAGGY","SAHIB","SAIGA","SAILS","SAINT","SAITH","SAKER","SAKES","SALAD","SALEP","SALES","SALLY","SALMI","SALOL","SALON","SALPA","SALSA","SALTS","SALTY","SALUT","SALVE","SALVO","SAMBA","SAMBO","SAMES","SAMEY","SANDS","SANDY","SANER","SAPID","SAPOR","SAPPY","SARAN","SARDS","SARGE","SARIS","SARKY","SAROS","SASIN","SASSY","SATAY","SATED","SATEM","SATES","SATIN","SATYR","SAUCE","SAUCY","SAUNA","SAURY","SAUTE","SAVED","SAVER","SAVES","SAVOR","SAVOY","SAVVY","SAWED","SAWER","SAXES","SAYER","SCABS","SCADS","SCAGS","SCALD","SCALE","SCALP","SCALY","SCAMP","SCAMS","SCANS","SCANT","SCAPE","SCARE","SCARF","SCARP","SCARS","SCARY","SCATS","SCEND","SCENE","SCENT","SCHMO","SCHWA","SCION","SCOFF","SCOLD","SCONE","SCOOP","SCOOT","SCOPE","SCORE","SCORN","SCOUR","SCOUT","SCOWL","SCOWS","SCRAG","SCRAM","SCRAP","SCREE","SCREW","SCRIM","SCRIP","SCROD","SCROG","SCRUB","SCRUM","SCUBA","SCUDO","SCUDS","SCUFF","SCULL","SCULP","SCUMS","SCUPS","SCURF","SCUTA","SCUTE","SCUTS","SEALS","SEAMS","SEAMY","SEARS","SEATS","SEBUM","SECCO","SECTS","SEDAN","SEDGE","SEDGY","SEDUM","SEEDS","SEEDY","SEEKS","SEELS","SEEMS","SEEPS","SEERS","SEGNO","SEGUE","SEINE","SEISE","SEISM","SEIZE","SELAH","SELLS","SEMEN","SEMIS","SENDS","SENNA","SENOR","SENSE","SENTE","SEPAL","SEPIA","SEPOY","SEPTA","SEPTS","SERAI","SERER","SERFS","SERGE","SERIF","SERIN","SEROW","SERUM","SERVE","SERVO","SETAE","SETTS","SETUP","SEVEN","SEVER","SEWAN","SEWED","SEWER","SEXED","SEXES","SEXTS","SHACK","SHADE","SHADS","SHADY","SHAFT","SHAGS","SHAHS","SHAKE","SHAKO","SHAKY","SHALE","SHALL","SHALT","SHAME","SHAMS","SHANK","SHAPE","SHARD","SHARE","SHARK","SHARP","SHAVE","SHAWL","SHAWM","SHAYS","SHEAF","SHEAR","SHEDS","SHEEN","SHEEP","SHEER","SHEET","SHEIK","SHELF","SHELL","SHEND","SHEWN","SHEWS","SHIED","SHIER","SHIES","SHIFT","SHILL","SHIMS","SHINE","SHINS","SHINY","SHIPS","SHIRE","SHIRK","SHIRR","SHIRT","SHITS","SHIVA","SHIVE","SHIVS","SHOAL","SHOAT","SHOCK","SHOES","SHONE","SHOOK","SHOOL","SHOOS","SHOOT","SHOPS","SHORE","SHORN","SHORT","SHOTE","SHOTS","SHOUT","SHOVE","SHOWN","SHOWS","SHOWY","SHRED","SHREW","SHRUB","SHRUG","SHUCK","SHUNS","SHUNT","SHUSH","SHUTS","SHYER","SHYLY","SIBYL","SICKO","SICKS","SIDED","SIDES","SIDLE","SIEGE","SIEVE","SIFTS","SIGHS","SIGHT","SIGIL","SIGMA","SIGNS","SIKAS","SILDS","SILKS","SILKY","SILLS","SILLY","SILOS","SILTS","SILTY","SILVA","SIMAR","SIMBA","SINCE","SINES","SINEW","SINGE","SINGS","SINKS","SINUS","SIRED","SIREN","SIRES","SISAL","SISES","SISSY","SITAR","SITED","SITES","SITUS","SIXES","SIXTH","SIXTY","SIZAR","SIZED","SIZER","SIZES","SKALD","SKATE","SKEAN","SKEET","SKEGS","SKEIN","SKELP","SKEPS","SKEWS","SKIDS","SKIED","SKIER","SKIES","SKIFF","SKILL","SKIMP","SKIMS","SKINK","SKINS","SKINT","SKIPS","SKIRL","SKIRR","SKIRT","SKITE","SKITS","SKIVE","SKOAL","SKOSH","SKUAS","SKULK","SKULL","SKUNK","SLABS","SLACK","SLAGS","SLAIN","SLAKE","SLAMS","SLANG","SLANT","SLAPS","SLASH","SLATE","SLATS","SLATY","SLAVE","SLAYS","SLEDS","SLEEK","SLEEP","SLEET","SLEPT","SLEWS","SLICE","SLICK","SLIDE","SLIER","SLIME","SLIMS","SLIMY","SLING","SLINK","SLIPS","SLITS","SLOBS","SLOES","SLOGS","SLOOP","SLOPE","SLOPS","SLOSH","SLOTH","SLOTS","SLOWS","SLUBS","SLUED","SLUES","SLUFF","SLUGS","SLUMP","SLUMS","SLUNG","SLUNK","SLURP","SLURS","SLUSH","SLUTS","SLYLY","SLYPE","SMACK","SMALL","SMALT","SMARM","SMART","SMASH","SMAZE","SMEAR","SMELL","SMELT","SMEWS","SMILE","SMIRK","SMITE","SMITH","SMOCK","SMOGS","SMOKE","SMOKO","SMOKY","SMOLT","SMOTE","SMURF","SMUTS","SNACK","SNAFU","SNAGS","SNAIL","SNAKE","SNAKY","SNAPS","SNARE","SNARF","SNARK","SNARL","SNATH","SNEAK","SNECK","SNEER","SNICK","SNIDE","SNIFF","SNIPE","SNIPS","SNITS","SNOBS","SNOGS","SNOOD","SNOOK","SNOOP","SNOOT","SNORE","SNORT","SNOTS","SNOUT","SNOWS","SNOWY","SNUBS","SNUCK","SNUFF","SNUGS","SOAKS","SOAPS","SOAPY","SOARS","SOAVE","SOBER","SOCKS","SOCLE","SODAS","SOFAR","SOFAS","SOFTA","SOFTY","SOGGY","SOILS","SOLAN","SOLAR","SOLDO","SOLED","SOLES","SOLID","SOLON","SOLOS","SOLUS","SOLVE","SOMAS","SONAR","SONDE","SONES","SONGS","SONIC","SONLY","SONNY","SOOTH","SOOTY","SOPOR","SOPPY","SORBS","SORER","SORES","SORGO","SORRY","SORTA","SORTS","SORUS","SOUGH","SOUKS","SOULS","SOUND","SOUPS","SOUPY","SOURS","SOUSE","SOUTH","SOWED","SOWER","SPACE","SPADE","SPAHI","SPAKE","SPALL","SPAMS","SPANG","SPANK","SPANS","SPARE","SPARK","SPARS","SPASM","SPATE","SPATS","SPAWN","SPAYS","SPEAK","SPEAR","SPECK","SPECS","SPEED","SPELL","SPELT","SPEND","SPENT","SPEOS","SPERM","SPEWS","SPICA","SPICE","SPICS","SPICY","SPIED","SPIEL","SPIER","SPIES","SPIFF","SPIKE","SPIKY","SPILE","SPILL","SPILT","SPINE","SPINS","SPINY","SPIRE","SPIRY","SPITE","SPITS","SPITZ","SPIVS","SPLAT","SPLAY","SPLIT","SPOIL","SPOKE","SPOOF","SPOOK","SPOOL","SPOON","SPOOR","SPORE","SPORT","SPOTS","SPOUT","SPRAG","SPRAT","SPRAY","SPREE","SPRIG","SPRIT","SPROG","SPRUE","SPUDS","SPUED","SPUES","SPUME","SPUMY","SPUNK","SPURN","SPURS","SPURT","SPUTA","SQUAB","SQUAD","SQUAT","SQUAW","SQUIB","SQUID","SRUTI","STABS","STACC","STACK","STAFF","STAGE","STAGS","STAGY","STAID","STAIN","STAIR","STAKE","STALE","STALK","STALL","STAMP","STAND","STANE","STANG","STANK","STAPH","STARE","STARK","STARS","START","STASH","STATE","STATS","STAVE","STAYS","STDIO","STEAD","STEAK","STEAL","STEAM","STEED","STEEL","STEEP","STEER","STEIN","STELA","STELE","STEMS","STENO","STENT","STEPS","STERE","STERN","STETS","STEWS","STICH","STICK","STIES","STIFF","STILE","STILL","STILT","STING","STINK","STINT","STIPE","STIRK","STIRS","STOAT","STOCK","STOIC","STOKE","STOLE","STOMA","STOMP","STONE","STONY","STOOD","STOOK","STOOL","STOOP","STOPE","STOPS","STORE","STORK","STORM","STORY","STOSS","STOUP","STOUT","STOVE","STOWS","STRAP","STRAW","STRAY","STREP","STREW","STRIA","STRIP","STROP","STROW","STROY","STRUM","STRUT","STUBS","STUCK","STUDS","STUDY","STUFF","STULL","STUMP","STUNG","STUNK","STUNS","STUNT","STUPA","STUPE","STYLE","STYLI","SUAVE","SUCKS","SUCRE","SUDOR","SUDSY","SUEDE","SUETY","SUGAR","SUING","SUINT","SUITE","SUITS","SULCI","SULFA","SULKS","SULKY","SULLY","SUMAC","SUMMA","SUMPS","SUNNY","SUNUP","SUPER","SUPPL","SUPRA","SURAH","SURAL","SURAS","SURDS","SURER","SURFS","SURGE","SURGY","SURLY","SURRA","SUSHI","SUTRA","SWABS","SWAGE","SWAGS","SWAIN","SWALE","SWAMI","SWAMP","SWANK","SWANS","SWAPS","SWARD","SWARM","SWART","SWASH","SWATH","SWATS","SWAYS","SWEAR","SWEAT","SWEDE","SWEEP","SWEET","SWELL","SWEPT","SWIFT","SWIGS","SWILL","SWIMS","SWINE","SWING","SWINK","SWIPE","SWIRL","SWISH","SWISS","SWIZZ","SWOON","SWOOP","SWORD","SWORE","SWORN","SWOTS","SWUNG","SYCEE","SYLPH","SYNCS","SYNOD","SYNOP","SYNTH","SYRUP","SYSOP","TABBY","TABES","TABLA","TABLE","TABOO","TABOR","TACET","TACHE","TACIT","TACKS","TACKY","TACOS","TAFFY","TAFIA","TAIGA","TAILS","TAINT","TAKAS","TAKEN","TAKER","TAKES","TAKIN","TALAS","TALER","TALES","TALKS","TALKY","TALLY","TALON","TALUK","TALUS","TAMED","TAMER","TAMES","TAMIS","TAMMY","TAMPS","TANGO","TANGS","TANGY","TANKA","TANKS","TANSY","TANTO","TAPAS","TAPED","TAPER","TAPES","TAPIR","TAPIS","TARDY","TARED","TARES","TARGE","TARNS","TAROS","TAROT","TARPS","TARRY","TARSI","TARTS","TARTY","TASER","TASKS","TASSE","TASTE","TASTY","TATER","TATTY","TAUNT","TAUPE","TAWNY","TAXED","TAXER","TAXES","TAXIS","TAXON","TAYRA","TAZZA","TEACH","TEAKS","TEALS","TEAMS","TEARS","TEARY","TEASE","TEATS","TECHS","TECHY","TEDDY","TEEMS","TEENS","TEENY","TEETH","TELEG","TELEX","TELIC","TELLS","TELLY","TEMPO","TEMPS","TEMPT","TENCH","TENDS","TENET","TENGE","TENIA","TENNE","TENNO","TENON","TENOR","TENSE","TENTH","TENTS","TEPEE","TEPID","TERCE","TERMS","TERNS","TERRA","TERRY","TERSE","TESLA","TESTA","TESTS","TESTY","TETHS","TETRA","TEXTS","THANE","THANK","THAWS","THEBE","THECA","THEES","THEFT","THEGN","THEIR","THEME","THEOL","THERE","THERM","THESE","THETA","THEWS","THEWY","THICK","THIEF","THIGH","THILL","THINE","THING","THINK","THINS","THIOL","THIRD","THOLE","THONG","THORN","THORP","THOSE","THOUS","THREE","THREW","THROB","THROE","THROW","THRUM","THUDS","THUGS","THUJA","THUMB","THUMP","THUNK","THUYA","THYME","TIARA","TIBIA","TICAL","TICKS","TIDAL","TIDED","TIDES","TIERS","TIFFS","TIGER","TIGHT","TIGON","TILDE","TILED","TILER","TILES","TILLS","TILTH","TILTS","TIMED","TIMER","TIMES","TIMID","TINCT","TINEA","TINED","TINES","TINGE","TINGS","TINNY","TINTS","TIPSY","TIRED","TIRES","TITAN","TITCH","TITER","TITHE","TITIS","TITLE","TITTY","TIZZY","TOADS","TOADY","TOAST","TODAY","TODDY","TOEAS","TOFFS","TOGAS","TOILE","TOILS","TOKAY","TOKED","TOKEN","TOKES","TOLAN","TOLAR","TOLLS","TOLLY","TOLUS","TOLYL","TOMBS","TOMES","TONAL","TONED","TONER","TONES","TONGA","TONGS","TONIC","TONNE","TONUS","TOOLS","TOOTH","TOOTS","TOPAZ","TOPED","TOPEE","TOPER","TOPES","TOPIC","TOPOG","TOPSY","TOQUE","TORCH","TORII","TORRS","TORSE","TORSK","TORSO","TORTE","TORTS","TORUS","TOTAL","TOTED","TOTEM","TOTER","TOTES","TOUCH","TOUGH","TOURS","TOUTS","TOWED","TOWEL","TOWER","TOWNS","TOXIC","TOXIN","TOYED","TRACE","TRACK","TRACT","TRADE","TRAIL","TRAIN","TRAIT","TRAMP","TRAMS","TRANS","TRAPS","TRASH","TRASS","TRAVE","TRAWL","TRAYS","TREAD","TREAS","TREAT","TREED","TREEN","TREES","TREKS","TREND","TRESS","TREWS","TREYS","TRIAD","TRIAL","TRIBE","TRICE","TRICK","TRIED","TRIER","TRIES","TRIKE","TRILL","TRIMS","TRINE","TRIOS","TRIPE","TRIPS","TRITE","TROAT","TROLL","TROMP","TRONA","TRONS","TROOP","TROPE","TROTH","TROTS","TROUT","TROVE","TROWS","TROYS","TRUCE","TRUCK","TRUED","TRUER","TRUES","TRUGS","TRULL","TRULY","TRUMP","TRUNK","TRUSS","TRUST","TRUTH","TRYMA","TRYST","TUBAL","TUBAS","TUBBY","TUBED","TUBER","TUBES","TUCKS","TUDOR","TUFTS","TUFTY","TULIP","TULLE","TUMID","TUMMY","TUMOR","TUNAS","TUNED","TUNER","TUNES","TUNIC","TUNNY","TUPLE","TUQUE","TURBO","TURDS","TURFS","TURFY","TURNS","TURPS","TURVY","TUSHY","TUSKS","TUTOR","TUTTI","TUTTY","TUTUS","TUXED","TUXES","TWAIN","TWANG","TWATS","TWEAK","TWEED","TWEEN","TWEET","TWERK","TWERP","TWICE","TWIGS","TWILL","TWINE","TWINK","TWINS","TWIRL","TWIST","TWITS","TWIXT","TYING","TYKES","TYPAL","TYPED","TYPES","TYPOS","TYROS","UDDER","UHLAN","UKASE","ULCER","ULEMA","ULNAE","ULNAR","ULTRA","UMBEL","UMBER","UMBRA","UMIAK","UMPED","UNAPT","UNARM","UNARY","UNBAR","UNBID","UNBOX","UNCAP","UNCLE","UNCUT","UNDER","UNDID","UNDUE","UNFED","UNFIT","UNFIX","UNIFY","UNION","UNITE","UNITS","UNITY","UNJAM","UNLAY","UNLIT","UNMAN","UNMET","UNPEG","UNPEN","UNPIN","UNRIG","UNSAY","UNSET","UNSEW","UNSEX","UNTIE","UNTIL","UNWED","UNWON","UNZIP","UPEND","UPPED","UPPER","UPSET","URBAN","UREDO","URGED","URGER","URGES","URIAL","URINE","USAGE","USERS","USHER","USING","USUAL","USURP","USURY","UTERI","UTILE","UTTER","UVEAS","UVULA","VAGAL","VAGUE","VAGUS","VALES","VALET","VALID","VALOR","VALSE","VALUE","VALVE","VAMPS","VAMPY","VANDA","VANES","VAPED","VAPES","VAPID","VAPOR","VARAS","VARIA","VARIX","VARUS","VARVE","VASES","VASTS","VASTY","VATIC","VAULT","VAUNT","VEDIC","VEEPS","VEERS","VEERY","VEGAN","VEGES","VEILS","VEINS","VEINY","VELAR","VELDS","VELUM","VENAE","VENAL","VENDS","VENGE","VENIN","VENOM","VENTS","VENUE","VERBS","VERGE","VERSA","VERSE","VERSO","VERST","VERTU","VERVE","VESTA","VESTS","VETCH","VETER","VEXED","VEXES","VIALS","VIAND","VIBES","VICAR","VICED","VICES","VIDEO","VIEWS","VIEWY","VIGIL","VIGOR","VILER","VILLA","VILLI","VIMEN","VINES","VINIC","VINYL","VIOLA","VIOLS","VIPER","VIRAL","VIREO","VIRGA","VIRTU","VIRUS","VISAS","VISED","VISES","VISIT","VISOR","VISTA","VITAE","VITAL","VITTA","VIVAS","VIVID","VIXEN","VOCAB","VOCAL","VODKA","VOGUE","VOICE","VOIDS","VOILA","VOILE","VOLAR","VOLES","VOLTS","VOLVA","VOMER","VOMIT","VOTED","VOTER","VOTES","VOUCH","VOUGE","VOWED","VOWEL","VOWER","VULVA","VYING","WACKE","WACKO","WACKS","WACKY","WADED","WADER","WADES","WADGE","WADIS","WAFER","WAFTS","WAGED","WAGER","WAGES","WAGON","WAHOO","WAIFS","WAILS","WAINS","WAIST","WAITS","WAIVE","WAKED","WAKEN","WAKES","WALDO","WALED","WALES","WALKS","WALLS","WALLY","WALTZ","WANDS","WANED","WANES","WANKS","WANLY","WANNA","WANTS","WARDS","WARES","WAREZ","WARMS","WARNS","WARPS","WARTS","WARTY","WASHY","WASPS","WASTE","WATCH","WATER","WATTS","WAVED","WAVER","WAVES","WAXED","WAXEN","WAXES","WAZOO","WEALD","WEALS","WEANS","WEARS","WEARY","WEAVE","WEBBY","WEBER","WEDGE","WEEDS","WEEDY","WEEKS","WEENS","WEENY","WEEPS","WEEPY","WEEST","WEFTS","WEIGH","WEIRD","WEIRS","WEKAS","WELCH","WELDS","WELLS","WELLY","WELSH","WELTS","WENCH","WENDS","WERSH","WETLY","WHACK","WHALE","WHAMS","WHAPS","WHARF","WHATS","WHEAL","WHEAT","WHEEL","WHEEN","WHELK","WHELM","WHELP","WHENS","WHERE","WHETS","WHICH","WHIFF","WHILE","WHIMS","WHINE","WHINS","WHINY","WHIPS","WHIPT","WHIRL","WHIRS","WHISH","WHISK","WHIST","WHITE","WHITS","WHITY","WHOLE","WHOMP","WHOOP","WHOPS","WHORE","WHORL","WHOSE","WHOSO","WHSLE","WHUPS","WICKS","WIDEN","WIDER","WIDES","WIDOW","WIDTH","WIELD","WIGHT","WIKIS","WILDS","WILED","WILES","WILLS","WILLY","WILTS","WIMPS","WIMPY","WINCE","WINCH","WINDS","WINDY","WINED","WINES","WINGS","WINKS","WINOS","WINZE","WIPED","WIPER","WIPES","WIRED","WIRER","WIRES","WIRRA","WISED","WISER","WISES","WISPS","WISPY","WITCH","WITHE","WITHY","WITTY","WIVED","WIVES","WIZEN","WOALD","WODGE","WOKEN","WOLDS","WOLFS","WOMAN","WOMBS","WOMEN","WOMYN","WONKS","WONKY","WOODS","WOODY","WOOED","WOOER","WOOFS","WOOLS","WOOLY","WOOPS","WOOZY","WORDS","WORDY","WORKS","WORLD","WORMS","WORMY","WORRY","WORSE","WORST","WORTH","WOULD","WOUND","WOVEN","WOWED","WRACK","WRAPS","WRATH","WREAK","WRECK","WRENS","WREST","WRING","WRIST","WRITE","WRITS","WRONG","WROTE","WROTH","WRUNG","WRYER","WRYLY","WURST","WUSSY","XCVII","XEBEC","XENIA","XENON","XERIC","XEROX","XREFS","XTERM","XVIII","XXIII","XXVII","XXXII","XXXIV","XXXIX","XXXVI","XYLEM","XYLOL","YACHT","YAHOO","YAKKA","YAMEN","YANKS","YAPOK","YAPON","YAPPY","YARDS","YARNS","YAWED","YAWLS","YAWNS","YAWPS","YEAHS","YEANS","YEARN","YEARS","YEAST","YEGGS","YELLS","YELPS","YENTA","YESES","YETIS","YIELD","YIKES","YOBBO","YODEL","YODLE","YOGIC","YOGIS","YOKED","YOKEL","YOKES","YOLKS","YONKS","YOUNG","YOURN","YOURS","YOUTH","YOWLS","YUCCA","YUCKY","YUKKY","YULAN","YUMMY","YURTS","ZAIRE","ZAMIA","ZAPPY","ZARFS","ZAYIN","ZAZEN","ZEBEC","ZEBRA","ZEBUS","ZEROS","ZESTS","ZESTY","ZETAS","ZIBET","ZILCH","ZINCS","ZINES","ZINGS","ZINGY","ZIPPY","ZITIS","ZLOTY","ZONAL","ZONED","ZONES","ZOOID","ZOOMS","ZORCH","ZORIL"]);
-function pickTargets() {
+// ---------- Daily mode helpers ----------
+function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function dailyNumber() {
+    // Days since Jan 1, 2026 (epoch for our daily counter)
+    const epoch = new Date(2026,0,1).getTime();
+    const today = new Date(new Date().toDateString()).getTime();
+    return Math.floor((today - epoch) / 86400000) + 1;
+}
+// Mulberry32 PRNG seeded from a string
+function seededRng(seedStr) {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 16777619) >>> 0; }
+    let a = h >>> 0;
+    return function() {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+}
+function pickTargets(mode) {
     const pool = [...WORD_POOL], t = [];
-    while (t.length < 8) { const i = Math.floor(Math.random()*pool.length); t.push(pool.splice(i,1)[0]); }
+    const rng = (mode === 'daily') ? seededRng('octordle-' + todayKey()) : Math.random;
+    while (t.length < 8) { const i = Math.floor(rng()*pool.length); t.push(pool.splice(i,1)[0]); }
     return t;
 }
-let TARGET_WORDS = pickTargets();
+let TARGET_WORDS = pickTargets(modeSelect.value);
 let guesses = [], currentGuess = "", solved = new Array(8).fill(false), isGameOver = false, isSubmitting = false;
 let globalKeyStates = {}, boardKeyStates = {};
 let lastWinGuess = null;
+let isLockedDailyDone = false; // true when player already finished today's daily
+let reducedMotion = false;
+let isColorblind = false;
+// ---------- Game state persistence ----------
+function saveKey() { return 'octordle_state_' + currentMode; }
+function saveGame() {
+    try {
+        const data = {
+            targets: TARGET_WORDS,
+            guesses: guesses,
+            solved: solved,
+            globalKeyStates: globalKeyStates,
+            boardKeyStates: boardKeyStates,
+            status: isGameOver ? (solved.every(s=>s) ? 'won' : 'lost') : 'active',
+            dayKey: currentMode === 'daily' ? todayKey() : null,
+            mode: currentMode
+        };
+        localStorage.setItem(saveKey(), JSON.stringify(data));
+    } catch(e) {}
+}
+function loadSavedGame() {
+    try {
+        const raw = localStorage.getItem(saveKey());
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || !data.targets || data.targets.length !== 8) return null;
+        if (currentMode === 'daily' && data.dayKey !== todayKey()) {
+            localStorage.removeItem(saveKey());
+            return null;
+        }
+        return data;
+    } catch(e) { return null; }
+}
+function clearSavedGame() {
+    try { localStorage.removeItem(saveKey()); } catch(e) {}
+}
 const STATE_PRIORITY = { correct:3, present:2, absent:1 };
 function updateCounter() {
     const r = maxGuesses - guesses.length;
@@ -212,7 +377,8 @@ function init() {
     const gv = document.getElementById('game-view'), tr = document.getElementById('tracker');
     for (let i = 0; i < 8; i++) {
         const c = document.createElement('div'); c.className = 'board-container';
-        c.innerHTML = `<div style="font-size:8px;color:#888;margin-bottom:2px;text-align:center;">BOARD ${i+1}</div><div class="grid" id="grid-${i}" style="grid-template-rows:repeat(${maxGuesses},1fr);"></div>`;
+        const dailyTag = (currentMode === 'daily') ? ' (Daily #' + dailyNumber() + ')' : '';
+        c.innerHTML = `<div style="font-size:8px;color:#888;margin-bottom:2px;text-align:center;">BOARD ${i+1}</div><div class="grid" id="grid-${i}" role="grid" aria-label="Board ${i+1}${dailyTag}" style="grid-template-rows:repeat(${maxGuesses},1fr);"></div>`;
         const g = c.querySelector('.grid');
         for (let r = 0; r < maxGuesses; r++) {
             const row = document.createElement('div'); row.className = 'row';
@@ -223,6 +389,72 @@ function init() {
         const ti = document.createElement('div'); ti.className = 'tracker-item'; ti.id = `track-${i}`; ti.textContent = i+1; tr.appendChild(ti);
     }
     buildKeyboard(); updateCounter();
+    // Try to restore previously-saved in-progress (or completed daily) game
+    const saved = loadSavedGame();
+    if (saved) {
+        TARGET_WORDS = saved.targets;
+        guesses = saved.guesses || [];
+        solved = saved.solved || new Array(8).fill(false);
+        globalKeyStates = saved.globalKeyStates || {};
+        boardKeyStates = saved.boardKeyStates || {};
+        // Repaint everything from saved guesses
+        repaintFromSavedState();
+        if (saved.status === 'won' || saved.status === 'lost') {
+            isGameOver = true;
+            statsRecorded = true; // don't double-count
+            if (currentMode === 'daily') isLockedDailyDone = true;
+            showEndGameModal(saved.status === 'won', /*fromRestore=*/true);
+        }
+    }
+    updateActiveRow();
+    applyAccessibilityPrefs();
+    window.scrollTo(0, 0);
+    // First-visit intro
+    if (!localStorage.getItem('octordle_intro_seen')) {
+        setTimeout(openIntro, 200);
+        try { localStorage.setItem('octordle_intro_seen', '1'); } catch(e) {}
+    }
+}
+function repaintFromSavedState() {
+    for (let g = 0; g < guesses.length; g++) {
+        const word = guesses[g];
+        for (let i = 0; i < 8; i++) {
+            const target = TARGET_WORDS[i];
+            const row = document.getElementById(`grid-${i}`).children[g];
+            const ga = word.split("");
+            let states = new Array(5).fill("absent"), tc = {};
+            for (const ch of target) tc[ch] = (tc[ch] || 0) + 1;
+            for (let c = 0; c < 5; c++) if (ga[c] === target[c]) { states[c] = "correct"; tc[ga[c]]--; }
+            for (let c = 0; c < 5; c++) if (states[c] !== "correct" && tc[ga[c]] > 0) { states[c] = "present"; tc[ga[c]]--; }
+            for (let c = 0; c < 5; c++) {
+                row.children[c].textContent = ga[c];
+                row.children[c].setAttribute('data-state', states[c]);
+                row.children[c].setAttribute('aria-label', `${ga[c]} ${states[c]}`);
+            }
+            if (solved[i]) document.getElementById(`track-${i}`).classList.add('solved');
+        }
+    }
+    // Repaint keyboard from saved key states
+    Object.entries(globalKeyStates).forEach(([ch, st]) => {
+        const kb = document.getElementById(`key-${ch}`);
+        if (kb) kb.setAttribute('data-state', st);
+    });
+    Object.entries(boardKeyStates).forEach(([ch, byBoard]) => {
+        Object.entries(byBoard).forEach(([idx, st]) => {
+            const dot = document.getElementById(`dot-${ch}-${idx}`);
+            if (dot) dot.setAttribute('data-state', st);
+        });
+    });
+}
+function updateActiveRow() {
+    document.querySelectorAll('.row.active').forEach(r => r.classList.remove('active'));
+    if (isGameOver) return;
+    const rowIdx = guesses.length;
+    for (let i = 0; i < 8; i++) {
+        if (solved[i]) continue;
+        const grid = document.getElementById(`grid-${i}`);
+        if (grid && grid.children[rowIdx]) grid.children[rowIdx].classList.add('active');
+    }
 }
 function buildKeyboard() {
     const layout = ["QWERTYUIOP".split(""), "ASDFGHJKL".split(""), ["ENTER", ..."ZXCVBNM".split(""), "DEL"]];
@@ -260,27 +492,68 @@ function updateView() {
     for (let i = 0; i < 8; i++) {
         if (solved[i]) continue;
         const row = document.getElementById(`grid-${i}`).children[guesses.length];
+        if (!row) continue;
         for (let c = 0; c < 5; c++) row.children[c].textContent = currentGuess[c] || "";
     }
 }
 function submitGuess() {
     isSubmitting = true;
     const ga = currentGuess.split("");
+    const guessRowIdx = guesses.length;
+    // Compute all 8 boards' states up front
+    const boardResults = [];
     for (let i = 0; i < 8; i++) {
-        if (solved[i]) continue;
-        const target = TARGET_WORDS[i], row = document.getElementById(`grid-${i}`).children[guesses.length];
+        if (solved[i]) { boardResults.push(null); continue; }
+        const target = TARGET_WORDS[i];
         let states = new Array(5).fill("absent"), tc = {};
         for (const ch of target) tc[ch] = (tc[ch] || 0) + 1;
         for (let c = 0; c < 5; c++) if (ga[c] === target[c]) { states[c] = "correct"; tc[ga[c]]--; }
         for (let c = 0; c < 5; c++) if (states[c] !== "correct" && tc[ga[c]] > 0) { states[c] = "present"; tc[ga[c]]--; }
-        states.forEach((s,c) => row.children[c].setAttribute('data-state', s));
-        states.forEach((s,c) => updateKeyVisuals(ga[c], i, s));
+        boardResults.push(states);
         if (currentGuess === target) { solved[i] = true; document.getElementById(`track-${i}`).classList.add('solved'); }
     }
-    guesses.push(currentGuess); currentGuess = ""; updateCounter();
-    if (solved.every(s => s)) endGame(true);
-    else if (guesses.length === maxGuesses) endGame(false);
-    setTimeout(() => { isSubmitting = false; }, 100);
+    // Strip active-row highlight from this row before flipping
+    for (let i = 0; i < 8; i++) {
+        const row = document.getElementById(`grid-${i}`).children[guessRowIdx];
+        if (row) row.classList.remove('active');
+    }
+    // Animate flip column-by-column (or instantly if reduced motion)
+    const flipDuration = reducedMotion ? 0 : 600;
+    const colStagger = reducedMotion ? 0 : 180;
+    for (let c = 0; c < 5; c++) {
+        const colDelay = c * colStagger;
+        setTimeout(() => {
+            for (let i = 0; i < 8; i++) {
+                if (!boardResults[i]) continue;
+                const tile = document.getElementById(`grid-${i}`).children[guessRowIdx].children[c];
+                if (flipDuration > 0) {
+                    tile.classList.add('flipping');
+                    setTimeout(() => {
+                        tile.setAttribute('data-state', boardResults[i][c]);
+                        tile.setAttribute('aria-label', `${ga[c]} ${boardResults[i][c]}`);
+                    }, flipDuration / 2);
+                    setTimeout(() => tile.classList.remove('flipping'), flipDuration);
+                } else {
+                    tile.setAttribute('data-state', boardResults[i][c]);
+                    tile.setAttribute('aria-label', `${ga[c]} ${boardResults[i][c]}`);
+                }
+                updateKeyVisuals(ga[c], i, boardResults[i][c]);
+            }
+        }, colDelay);
+    }
+    // After all flips, finalize
+    const totalFlipMs = (4 * colStagger) + flipDuration + 50;
+    setTimeout(() => {
+        guesses.push(currentGuess); currentGuess = ""; updateCounter();
+        updateActiveRow();
+        // Screen-reader announcement
+        const solvedCount = solved.filter(s => s).length;
+        announce(`Guess submitted. ${solvedCount} of 8 boards solved.`);
+        saveGame();
+        if (solved.every(s => s)) endGame(true);
+        else if (guesses.length === maxGuesses) endGame(false);
+        isSubmitting = false;
+    }, totalFlipMs);
 }
 function updateKeyVisuals(char, boardIdx, state) {
     if (!boardKeyStates[char]) boardKeyStates[char] = {};
@@ -301,12 +574,28 @@ function endGame(win) {
     isGameOver = true;
     lastWinGuess = win ? guesses.length : null;
     recordResult(currentMode, win, guesses.length, maxGuesses);
+    if (currentMode === 'daily') saveGame();
+    else clearSavedGame();
+    showEndGameModal(win, false);
+}
+function showEndGameModal(win, fromRestore) {
     setTimeout(() => {
         const modal = document.getElementById('modal'), title = document.getElementById('modal-title');
         modal.style.display = "flex";
+        // Reset re-entrant content
+        document.getElementById('answers-container').style.display = "none";
+        document.getElementById('ans-list').innerHTML = '';
+        document.getElementById('daily-complete-msg').style.display = (currentMode === 'daily') ? 'block' : 'none';
+        // If we're in daily mode and player already played today, hide PLAY AGAIN
+        const playBtn = document.getElementById('play-again-btn');
+        if (currentMode === 'daily') {
+            playBtn.textContent = 'BACK';
+            playBtn.onclick = () => { document.getElementById('modal').style.display = 'none'; stopFireworks(); };
+        }
         if (win) {
             title.textContent = "VICTORY!"; title.style.color = "#538d4e";
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            if (!fromRestore && !reducedMotion) startFireworks();
+            announce(`Victory. All 8 boards solved in ${guesses.length} guesses.`);
         } else {
             title.textContent = "GAME OVER"; title.style.color = "#e74c3c";
             document.getElementById('answers-container').style.display = "block";
@@ -314,8 +603,88 @@ function endGame(win) {
             TARGET_WORDS.forEach((w, i) => {
                 if (!solved[i]) { const d = document.createElement('div'); d.className = 'ans-item'; d.textContent = `Board ${i+1}: ${w}`; list.appendChild(d); }
             });
+            announce(`Game over. ${solved.filter(s=>s).length} of 8 boards solved.`);
         }
-    }, 400);
+    }, fromRestore ? 0 : 400);
+}
+function handlePlayAgain() {
+    // Daily mode is one-and-done per day — clear non-daily save, reload
+    if (currentMode !== 'daily') clearSavedGame();
+    location.reload();
+}
+// ---------- Share results ----------
+function shareResults() {
+    const lines = [];
+    const modeLabel = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+    const tag = (currentMode === 'daily') ? `Octordle Daily #${dailyNumber()}` : `Octordle ${modeLabel}`;
+    const won = solved.every(s => s);
+    const totalGuesses = won ? guesses.length : 'X';
+    const summary = `${tag}  ${solved.filter(s=>s).length}/8  ${won ? totalGuesses : 'X'}/${maxGuesses}`;
+    lines.push(summary);
+    // Per-board solve guess number (or X)
+    const scores = [];
+    for (let i = 0; i < 8; i++) {
+        if (!solved[i]) { scores.push('X'); continue; }
+        // Find which guess solved board i
+        for (let g = 0; g < guesses.length; g++) {
+            if (guesses[g] === TARGET_WORDS[i]) { scores.push(g + 1); break; }
+        }
+    }
+    // Render as 2 rows of 4
+    const fmt = n => (n === 'X') ? '🟥' : (n <= 9 ? ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][n-1] : (n === 10 ? '🔟' : (n === 11 ? '1️⃣1️⃣' : (n === 12 ? '1️⃣2️⃣' : (n === 13 ? '1️⃣3️⃣' : (n === 14 ? '1️⃣4️⃣' : (n === 15 ? '1️⃣5️⃣' : '1️⃣6️⃣')))))));
+    lines.push(scores.slice(0,4).map(fmt).join(' '));
+    lines.push(scores.slice(4,8).map(fmt).join(' '));
+    lines.push(location.href);
+    const text = lines.join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'),
+            () => showToast(text, 5000));
+    } else {
+        showToast(text, 5000);
+    }
+}
+function showToast(msg, ms) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, ms || 2000);
+}
+function announce(msg) {
+    const live = document.getElementById('sr-live');
+    if (live) live.textContent = msg;
+}
+// ---------- Intro & Settings ----------
+function openIntro() { document.getElementById('intro-modal').style.display = 'flex'; }
+function closeIntro() { document.getElementById('intro-modal').style.display = 'none'; }
+function openSettings() { syncSettingsUI(); document.getElementById('settings-modal').style.display = 'flex'; }
+function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+function syncSettingsUI() {
+    document.getElementById('toggle-colorblind').classList.toggle('on', isColorblind);
+    document.getElementById('toggle-colorblind').setAttribute('aria-checked', isColorblind);
+    document.getElementById('toggle-motion').classList.toggle('on', reducedMotion);
+    document.getElementById('toggle-motion').setAttribute('aria-checked', reducedMotion);
+}
+function toggleColorblind() {
+    isColorblind = !isColorblind;
+    document.body.classList.toggle('colorblind', isColorblind);
+    try { localStorage.setItem('octordle_colorblind', isColorblind ? '1' : '0'); } catch(e) {}
+    syncSettingsUI();
+}
+function toggleMotion() {
+    reducedMotion = !reducedMotion;
+    try { localStorage.setItem('octordle_reduced_motion', reducedMotion ? '1' : '0'); } catch(e) {}
+    syncSettingsUI();
+}
+function applyAccessibilityPrefs() {
+    try {
+        isColorblind = localStorage.getItem('octordle_colorblind') === '1';
+        reducedMotion = localStorage.getItem('octordle_reduced_motion') === '1';
+        if (!localStorage.getItem('octordle_reduced_motion') && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            reducedMotion = true;
+        }
+    } catch(e) {}
+    if (isColorblind) document.body.classList.add('colorblind');
 }
 // ---- STATS ----
 function getStats(mode) {
@@ -325,7 +694,10 @@ function getStats(mode) {
 function saveStats(mode, s) {
     try { localStorage.setItem('octordle_stats_'+mode, JSON.stringify(s)); } catch(e) {}
 }
+let statsRecorded = false;
 function recordResult(mode, win, guessCount, maxG) {
+    if (statsRecorded || !isGameOver) return; // only record completed games, and only once
+    statsRecorded = true;
     const s = getStats(mode);
     s.played++;
     if (win) {
@@ -374,5 +746,59 @@ window.addEventListener('keydown', (e) => {
 });
 init();
 </script>
+
+<div id="intro-modal" role="dialog" aria-modal="true" aria-labelledby="intro-title" onclick="if(event.target===this)closeIntro()">
+    <div class="intro-content">
+        <h2 id="intro-title">HOW TO PLAY</h2>
+        <p>Guess <strong>8 hidden 5-letter words</strong> at once. Every guess you make is applied to all 8 boards simultaneously.</p>
+        <h3>TILE COLORS</h3>
+        <div class="intro-example">
+            <div class="intro-tile correct">G</div><div class="intro-tile">U</div><div class="intro-tile">E</div><div class="intro-tile">S</div><div class="intro-tile">S</div>
+        </div>
+        <p><strong>Green</strong> — letter is in the word and in the correct spot.</p>
+        <div class="intro-example">
+            <div class="intro-tile">W</div><div class="intro-tile present">E</div><div class="intro-tile">A</div><div class="intro-tile">R</div><div class="intro-tile">Y</div>
+        </div>
+        <p><strong>Yellow</strong> — letter is in the word, but in the wrong spot.</p>
+        <div class="intro-example">
+            <div class="intro-tile">P</div><div class="intro-tile">I</div><div class="intro-tile absent">A</div><div class="intro-tile">N</div><div class="intro-tile">O</div>
+        </div>
+        <p><strong>Gray</strong> — letter is not in the word.</p>
+        <h3>KEYBOARD DOTS</h3>
+        <p>Each letter key has 8 small dots — one per board. Each dot shows that letter's status on that board: <span class="intro-dotex"><span class="dot c"></span><span class="dot p"></span><span class="dot a"></span><span class="dot u"></span></span> green / yellow / gray / unused.</p>
+        <h3>MODES</h3>
+        <p><strong>CLASSIC</strong> 13 guesses · <strong>CHILL</strong> 16 guesses · <strong>EXTREME</strong> 12 guesses · <strong>DAILY</strong> one shared challenge per day.</p>
+        <button class="play-btn" onclick="closeIntro()" style="margin-top:18px;width:100%;">GOT IT</button>
+    </div>
+</div>
+<div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" onclick="if(event.target===this)closeSettings()">
+    <div class="settings-content">
+        <button class="stats-close" onclick="closeSettings()" aria-label="Close settings">✕</button>
+        <h2 id="settings-title">SETTINGS</h2>
+        <div class="setting-row">
+            <div class="setting-info">
+                <div class="setting-label">Color-blind mode</div>
+                <div class="setting-desc">Blue & orange instead of green & yellow</div>
+            </div>
+            <div class="toggle" id="toggle-colorblind" role="switch" tabindex="0" aria-label="Color-blind mode" onclick="toggleColorblind()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleColorblind();}"></div>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <div class="setting-label">Reduced motion</div>
+                <div class="setting-desc">Disable tile flip & confetti animations</div>
+            </div>
+            <div class="toggle" id="toggle-motion" role="switch" tabindex="0" aria-label="Reduced motion" onclick="toggleMotion()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleMotion();}"></div>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <div class="setting-label">Show intro</div>
+                <div class="setting-desc">Open the how-to-play screen</div>
+            </div>
+            <button class="icon-btn" onclick="closeSettings();openIntro();">OPEN</button>
+        </div>
+    </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="sr-live" class="sr-only" role="status" aria-live="polite"></div>
 </body>
 </html>
