@@ -226,10 +226,16 @@
 <header>
     OCTORDLE
     <select id="mode-select" aria-label="Game mode">
-        <option value="classic">CLASSIC</option>
-        <option value="chill">CHILL</option>
-        <option value="extreme" selected>EXTREME</option>
-        <option value="daily">DAILY</option>
+        <optgroup label="RANDOM">
+            <option value="classic">CLASSIC</option>
+            <option value="chill">CHILL</option>
+            <option value="extreme" selected>EXTREME</option>
+        </optgroup>
+        <optgroup label="DAILY">
+            <option value="daily-classic">DAILY CLASSIC</option>
+            <option value="daily-chill">DAILY CHILL</option>
+            <option value="daily">DAILY EXTREME</option>
+        </optgroup>
     </select>
     <span id="guess-counter" style="font-size:0.8rem;opacity:0.7;"></span>
     <button class="icon-btn" onclick="openIntro()" aria-label="How to play">HELP</button>
@@ -250,9 +256,14 @@
         <button class="stats-close" onclick="closeStats()">✕</button>
         <h2 id="stats-title">STATISTICS</h2>
         <div class="stats-tabs">
-            <button class="stats-tab" onclick="switchStatsTab('classic')">CLASSIC</button>
-            <button class="stats-tab" onclick="switchStatsTab('chill')">CHILL</button>
-            <button class="stats-tab" onclick="switchStatsTab('extreme')">EXTREME</button>
+            <button class="stats-tab" data-mode="classic" onclick="switchStatsTab('classic')">CLASSIC</button>
+            <button class="stats-tab" data-mode="chill" onclick="switchStatsTab('chill')">CHILL</button>
+            <button class="stats-tab" data-mode="extreme" onclick="switchStatsTab('extreme')">EXTREME</button>
+        </div>
+        <div class="stats-tabs" style="margin-top:-10px;">
+            <button class="stats-tab" data-mode="daily-classic" onclick="switchStatsTab('daily-classic')">D-CLASSIC</button>
+            <button class="stats-tab" data-mode="daily-chill" onclick="switchStatsTab('daily-chill')">D-CHILL</button>
+            <button class="stats-tab" data-mode="daily" onclick="switchStatsTab('daily')">D-EXTREME</button>
         </div>
         <div class="stats-grid">
             <div class="stat-box"><div class="stat-num" id="s-played">0</div><div class="stat-label">PLAYED</div></div>
@@ -281,7 +292,15 @@
 </div>
 <script>
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-const MODE_GUESSES = { classic: 13, chill: 16, extreme: 12, daily: 12 };
+const MODE_GUESSES = { classic: 13, chill: 16, extreme: 12, daily: 12, 'daily-classic': 13, 'daily-chill': 16 };
+// Helpers — keep 'daily' as the legacy key for what's now called DAILY EXTREME
+function isDailyMode(m) { return m === 'daily' || m === 'daily-classic' || m === 'daily-chill'; }
+function friendlyMode(m) {
+    return ({
+        classic: 'Classic', chill: 'Chill', extreme: 'Extreme',
+        daily: 'Daily Extreme', 'daily-classic': 'Daily Classic', 'daily-chill': 'Daily Chill'
+    })[m] || m;
+}
 const modeSelect = document.getElementById('mode-select');
 // Restore previously chosen mode (falls back to the HTML default if nothing saved)
 try {
@@ -324,7 +343,7 @@ function seededRng(seedStr) {
 }
 function pickTargets(mode) {
     const pool = [...WORD_POOL], t = [];
-    const rng = (mode === 'daily') ? seededRng('octordle-' + todayKey()) : Math.random;
+    const rng = isDailyMode(mode) ? seededRng('octordle-' + mode + '-' + todayKey()) : Math.random;
     while (t.length < 8) { const i = Math.floor(rng()*pool.length); t.push(pool.splice(i,1)[0]); }
     return t;
 }
@@ -346,7 +365,7 @@ function saveGame() {
             globalKeyStates: globalKeyStates,
             boardKeyStates: boardKeyStates,
             status: isGameOver ? (solved.every(s=>s) ? 'won' : 'lost') : 'active',
-            dayKey: currentMode === 'daily' ? todayKey() : null,
+            dayKey: isDailyMode(currentMode) ? todayKey() : null,
             mode: currentMode
         };
         localStorage.setItem(saveKey(), JSON.stringify(data));
@@ -358,7 +377,7 @@ function loadSavedGame() {
         if (!raw) return null;
         const data = JSON.parse(raw);
         if (!data || !data.targets || data.targets.length !== 8) return null;
-        if (currentMode === 'daily' && data.dayKey !== todayKey()) {
+        if (isDailyMode(currentMode) && data.dayKey !== todayKey()) {
             localStorage.removeItem(saveKey());
             return null;
         }
@@ -378,7 +397,7 @@ function init() {
     const gv = document.getElementById('game-view'), tr = document.getElementById('tracker');
     for (let i = 0; i < 8; i++) {
         const c = document.createElement('div'); c.className = 'board-container';
-        const dailyTag = (currentMode === 'daily') ? ' (Daily #' + dailyNumber() + ')' : '';
+        const dailyTag = isDailyMode(currentMode) ? ' (' + friendlyMode(currentMode) + ' #' + dailyNumber() + ')' : '';
         c.innerHTML = `<div style="font-size:8px;color:#888;margin-bottom:2px;text-align:center;">BOARD ${i+1}</div><div class="grid" id="grid-${i}" role="grid" aria-label="Board ${i+1}${dailyTag}" style="grid-template-rows:repeat(${maxGuesses},1fr);"></div>`;
         const g = c.querySelector('.grid');
         for (let r = 0; r < maxGuesses; r++) {
@@ -403,7 +422,7 @@ function init() {
         if (saved.status === 'won' || saved.status === 'lost') {
             isGameOver = true;
             statsRecorded = true; // don't double-count
-            if (currentMode === 'daily') isLockedDailyDone = true;
+            if (isDailyMode(currentMode)) isLockedDailyDone = true;
             showEndGameModal(saved.status === 'won', /*fromRestore=*/true);
         }
     }
@@ -575,7 +594,7 @@ function endGame(win) {
     isGameOver = true;
     lastWinGuess = win ? guesses.length : null;
     recordResult(currentMode, win, guesses.length, maxGuesses);
-    if (currentMode === 'daily') saveGame();
+    if (isDailyMode(currentMode)) saveGame();
     else clearSavedGame();
     showEndGameModal(win, false);
 }
@@ -586,10 +605,10 @@ function showEndGameModal(win, fromRestore) {
         // Reset re-entrant content
         document.getElementById('answers-container').style.display = "none";
         document.getElementById('ans-list').innerHTML = '';
-        document.getElementById('daily-complete-msg').style.display = (currentMode === 'daily') ? 'block' : 'none';
+        document.getElementById('daily-complete-msg').style.display = isDailyMode(currentMode) ? 'block' : 'none';
         // If we're in daily mode and player already played today, hide PLAY AGAIN
         const playBtn = document.getElementById('play-again-btn');
-        if (currentMode === 'daily') {
+        if (isDailyMode(currentMode)) {
             playBtn.textContent = 'BACK';
             playBtn.onclick = () => { document.getElementById('modal').style.display = 'none'; stopFireworks(); };
         }
@@ -610,13 +629,13 @@ function showEndGameModal(win, fromRestore) {
 }
 function handlePlayAgain() {
     // Daily mode is one-and-done per day — clear non-daily save, reload
-    if (currentMode !== 'daily') clearSavedGame();
+    if (!isDailyMode(currentMode)) clearSavedGame();
     location.reload();
 }
 // ---------- Share results ----------
 function shareResults() {
-    const modeLabel = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
-    const isDaily = currentMode === 'daily';
+    const modeLabel = friendlyMode(currentMode);
+    const isDaily = isDailyMode(currentMode);
     const won = solved.every(s => s);
     const solvedCount = solved.filter(s => s).length;
     const stats = getStats(currentMode);
@@ -629,7 +648,7 @@ function shareResults() {
         }
     }
     const lines = [];
-    const title = isDaily ? `Octordle Daily #${dailyNumber()}` : `Octordle ${modeLabel}`;
+    const title = isDaily ? `Octordle ${modeLabel} #${dailyNumber()}` : `Octordle ${modeLabel}`;
     lines.push(title);
     if (won) {
         lines.push(`✅ Solved 8/8 boards in ${guesses.length}/${maxGuesses} guesses`);
@@ -743,8 +762,8 @@ function openStats() {
 function closeStats() { document.getElementById('stats-modal').style.display = 'none'; }
 function switchStatsTab(mode) { statsTab = mode; renderStats(mode); }
 function renderStats(mode) {
-    document.querySelectorAll('.stats-tab').forEach((t,i) => {
-        t.classList.toggle('active', ['classic','chill','extreme'][i] === mode);
+    document.querySelectorAll('.stats-tab').forEach(t => {
+        t.classList.toggle('active', t.getAttribute('data-mode') === mode);
     });
     const s = getStats(mode);
     document.getElementById('s-played').textContent = s.played;
@@ -791,7 +810,8 @@ init();
         <h3>KEYBOARD DOTS</h3>
         <p>Each letter key has 8 small dots — one per board. Each dot shows that letter's status on that board: <span class="intro-dotex"><span class="dot c"></span><span class="dot p"></span><span class="dot a"></span><span class="dot u"></span></span> green / yellow / gray / unused.</p>
         <h3>MODES</h3>
-        <p><strong>CLASSIC</strong> 13 guesses · <strong>CHILL</strong> 16 guesses · <strong>EXTREME</strong> 12 guesses · <strong>DAILY</strong> one shared challenge per day.</p>
+        <p><strong>CLASSIC</strong> 13 guesses · <strong>CHILL</strong> 16 guesses · <strong>EXTREME</strong> 12 guesses.</p>
+        <p>Each difficulty also has a <strong>DAILY</strong> variant — the same 8 words for every player, refreshing once per day. One play per daily per day.</p>
         <button class="play-btn" onclick="closeIntro()" style="margin-top:18px;width:100%;">GOT IT</button>
     </div>
 </div>
