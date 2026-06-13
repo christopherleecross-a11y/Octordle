@@ -731,10 +731,9 @@ function toggleMotion() {
 function applyAccessibilityPrefs() {
     try {
         isColorblind = localStorage.getItem('octordle_colorblind') === '1';
+        // Only honor explicit user setting — don't auto-disable based on OS preference,
+        // since fireworks/flips are short celebratory effects most players want by default.
         reducedMotion = localStorage.getItem('octordle_reduced_motion') === '1';
-        if (!localStorage.getItem('octordle_reduced_motion') && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            reducedMotion = true;
-        }
     } catch(e) {}
     if (isColorblind) document.body.classList.add('colorblind');
 }
