@@ -126,10 +126,14 @@
         .stats-tabs { display: flex; gap: 6px; margin: 14px 0 18px; justify-content: center; }
         .stats-tab { background: #2a2a2c; color: #aaa; border: 1px solid #3a3a3c; border-radius: 4px; padding: 4px 12px; font-size: 0.75rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
         .stats-tab.active { background: #538d4e; color: #fff; border-color: #538d4e; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; text-align: center; }
-        .stat-box { background: #121213; border-radius: 6px; padding: 10px 4px; }
-        .stat-num { font-size: 1.6rem; font-weight: bold; color: #ffffff; line-height: 1; }
-        .stat-label { font-size: 0.65rem; color: #888; margin-top: 4px; letter-spacing: 0.5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; text-align: center; }
+        .stat-box { background: #121213; border-radius: 6px; padding: 10px 2px; }
+        .stat-num { font-size: 1.4rem; font-weight: bold; color: #ffffff; line-height: 1; }
+        .stat-label { font-size: 0.6rem; color: #888; margin-top: 4px; letter-spacing: 0.3px; }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .stat-num { font-size: 1.3rem; }
+        }
         .dist-title { font-size: 0.7rem; letter-spacing: 1px; color: #888; margin-bottom: 10px; text-align: center; }
         .dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.8rem; }
         .dist-label { width: 20px; text-align: right; color: #aaa; flex-shrink: 0; }
@@ -275,6 +279,7 @@
             <div class="stat-box"><div class="stat-num" id="s-win">0%</div><div class="stat-label">WIN %</div></div>
             <div class="stat-box"><div class="stat-num" id="s-streak">0</div><div class="stat-label">STREAK</div></div>
             <div class="stat-box"><div class="stat-num" id="s-max">0</div><div class="stat-label">MAX STREAK</div></div>
+            <div class="stat-box"><div class="stat-num" id="s-avg">—</div><div class="stat-label">AVG GUESSES</div></div>
         </div>
         <div class="dist-title">GUESS DISTRIBUTION</div>
         <div id="dist-bars"></div>
@@ -793,6 +798,13 @@ function renderStats(mode) {
     document.getElementById('s-win').textContent = s.played ? Math.round(s.wins/s.played*100)+'%' : '0%';
     document.getElementById('s-streak').textContent = s.streak;
     document.getElementById('s-max').textContent = s.maxStreak;
+    // Average guesses across wins only (dist maps guess-count -> frequency)
+    let totalGuesses = 0, totalWins = 0;
+    for (const [k, v] of Object.entries(s.dist || {})) {
+        totalGuesses += Number(k) * v;
+        totalWins += v;
+    }
+    document.getElementById('s-avg').textContent = totalWins ? (totalGuesses / totalWins).toFixed(1) : '—';
     const maxG = MODE_GUESSES[mode];
     const maxVal = Math.max(1, ...Object.values(s.dist));
     const bars = document.getElementById('dist-bars');
