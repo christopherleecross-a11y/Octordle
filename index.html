@@ -126,14 +126,13 @@
         .stats-tabs { display: flex; gap: 6px; margin: 14px 0 18px; justify-content: center; }
         .stats-tab { background: #2a2a2c; color: #aaa; border: 1px solid #3a3a3c; border-radius: 4px; padding: 4px 12px; font-size: 0.75rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
         .stats-tab.active { background: #538d4e; color: #fff; border-color: #538d4e; }
-        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; text-align: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 20px; text-align: center; }
         .stat-box { background: #121213; border-radius: 6px; padding: 10px 2px; }
         .stat-num { font-size: 1.4rem; font-weight: bold; color: #ffffff; line-height: 1; }
         .stat-label { font-size: 0.6rem; color: #888; margin-top: 4px; letter-spacing: 0.3px; }
-        @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: repeat(3, 1fr); }
-            .stat-num { font-size: 1.3rem; }
-        }
+        /* === Header timer === */
+        #timer-display { display: none; background: #2a2a2c; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 4px; padding: 3px 8px; font-size: 0.75rem; font-family: 'Menlo', monospace; font-weight: bold; letter-spacing: 1px; }
+        body.timer-on #timer-display { display: inline-block; }
         .dist-title { font-size: 0.7rem; letter-spacing: 1px; color: #888; margin-bottom: 10px; text-align: center; }
         .dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.8rem; }
         .dist-label { width: 20px; text-align: right; color: #aaa; flex-shrink: 0; }
@@ -247,6 +246,7 @@
         </optgroup>
     </select>
     <span id="guess-counter" style="font-size:0.8rem;opacity:0.7;"></span>
+    <span id="timer-display" aria-live="off">0:00</span>
     <button class="icon-btn" onclick="openIntro()" aria-label="How to play">HELP</button>
     <button class="icon-btn" onclick="openSettings()" aria-label="Settings">⚙</button>
     <button id="stats-btn" onclick="openStats()">STATS</button>
@@ -280,6 +280,7 @@
             <div class="stat-box"><div class="stat-num" id="s-streak">0</div><div class="stat-label">STREAK</div></div>
             <div class="stat-box"><div class="stat-num" id="s-max">0</div><div class="stat-label">MAX STREAK</div></div>
             <div class="stat-box"><div class="stat-num" id="s-avg">—</div><div class="stat-label">AVG GUESSES</div></div>
+            <div class="stat-box"><div class="stat-num" id="s-best">—</div><div class="stat-label">BEST TIME</div></div>
         </div>
         <div class="dist-title">GUESS DISTRIBUTION</div>
         <div id="dist-bars"></div>
@@ -368,6 +369,49 @@ let lastWinGuess = null;
 let isLockedDailyDone = false; // true when player already finished today's daily
 let reducedMotion = false;
 let isColorblind = false;
+let showTimer = false;
+let gameStartTime = null;  // ms since epoch when this game's timer started (first keystroke)
+let finalElapsedMs = null; // set on game end
+let timerIntervalId = null;
+// ---------- Timer ----------
+function fmtTime(ms) {
+    if (ms == null) return '—';
+    const totalSec = Math.floor(ms / 1000);
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return min + ':' + String(sec).padStart(2, '0');
+}
+function updateTimerDisplay() {
+    const el = document.getElementById('timer-display');
+    if (!el) return;
+    if (gameStartTime == null) { el.textContent = '0:00'; return; }
+    const elapsed = (finalElapsedMs != null) ? finalElapsedMs : (Date.now() - gameStartTime);
+    el.textContent = fmtTime(elapsed);
+}
+function startTimerTick() {
+    if (timerIntervalId) return;
+    updateTimerDisplay();
+    timerIntervalId = setInterval(updateTimerDisplay, 500);
+}
+function stopTimerTick() {
+    if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
+}
+function ensureTimerStarted() {
+    // Start on first keystroke of the game
+    if (gameStartTime == null && !isGameOver) {
+        gameStartTime = Date.now();
+        startTimerTick();
+        saveGame();
+    }
+}
+function toggleTimer() {
+    showTimer = !showTimer;
+    document.body.classList.toggle('timer-on', showTimer);
+    try { localStorage.setItem('octordle_show_timer', showTimer ? '1' : '0'); } catch(e) {}
+    syncSettingsUI();
+    // If a game is already in progress with a running clock, keep ticking
+    if (showTimer && gameStartTime != null && !isGameOver) startTimerTick();
+}
 // ---------- Game state persistence ----------
 function saveKey() { return 'octordle_state_' + currentMode; }
 function saveGame() {
@@ -380,7 +424,9 @@ function saveGame() {
             boardKeyStates: boardKeyStates,
             status: isGameOver ? (solved.every(s=>s) ? 'won' : 'lost') : 'active',
             dayKey: isDailyMode(currentMode) ? todayKey() : null,
-            mode: currentMode
+            mode: currentMode,
+            gameStartTime: gameStartTime,
+            finalElapsedMs: finalElapsedMs
         };
         localStorage.setItem(saveKey(), JSON.stringify(data));
     } catch(e) {}
@@ -431,6 +477,8 @@ function init() {
         solved = saved.solved || new Array(8).fill(false);
         globalKeyStates = saved.globalKeyStates || {};
         boardKeyStates = saved.boardKeyStates || {};
+        gameStartTime = saved.gameStartTime != null ? saved.gameStartTime : null;
+        finalElapsedMs = saved.finalElapsedMs != null ? saved.finalElapsedMs : null;
         // Repaint everything from saved guesses
         repaintFromSavedState();
         if (saved.status === 'won' || saved.status === 'lost') {
@@ -442,6 +490,9 @@ function init() {
     }
     updateActiveRow();
     applyAccessibilityPrefs();
+    // If a timed game is in progress (restored from save), resume ticking
+    if (gameStartTime != null && !isGameOver) startTimerTick();
+    updateTimerDisplay();
     window.scrollTo(0, 0);
     // First-visit intro
     if (!localStorage.getItem('octordle_intro_seen')) {
@@ -512,7 +563,11 @@ function handleInput(key) {
     if (isGameOver || isSubmitting) return;
     if (key === "ENTER") { if (currentGuess.length === 5) validateAndSubmit(); }
     else if (key === "DEL" || key === "BACKSPACE") { currentGuess = currentGuess.slice(0,-1); updateView(); }
-    else if (currentGuess.length < 5 && /^[A-Z]$/.test(key.toUpperCase())) { currentGuess += key.toUpperCase(); updateView(); }
+    else if (currentGuess.length < 5 && /^[A-Z]$/.test(key.toUpperCase())) {
+        ensureTimerStarted();
+        currentGuess += key.toUpperCase();
+        updateView();
+    }
 }
 function validateAndSubmit() { if (!VALID_GUESSES.has(currentGuess)) { showShake(); return; } submitGuess(); }
 function showShake() {
@@ -607,7 +662,13 @@ function updateKeyVisuals(char, boardIdx, state) {
 function endGame(win) {
     isGameOver = true;
     lastWinGuess = win ? guesses.length : null;
-    recordResult(currentMode, win, guesses.length, maxGuesses);
+    // Capture final elapsed time (if the timer ever started)
+    if (gameStartTime != null && finalElapsedMs == null) {
+        finalElapsedMs = Date.now() - gameStartTime;
+    }
+    stopTimerTick();
+    updateTimerDisplay();
+    recordResult(currentMode, win, guesses.length, maxGuesses, win ? finalElapsedMs : null);
     if (isDailyMode(currentMode)) saveGame();
     else clearSavedGame();
     showEndGameModal(win, false);
@@ -721,6 +782,8 @@ function syncSettingsUI() {
     document.getElementById('toggle-colorblind').setAttribute('aria-checked', isColorblind);
     document.getElementById('toggle-motion').classList.toggle('on', reducedMotion);
     document.getElementById('toggle-motion').setAttribute('aria-checked', reducedMotion);
+    document.getElementById('toggle-timer').classList.toggle('on', showTimer);
+    document.getElementById('toggle-timer').setAttribute('aria-checked', showTimer);
 }
 function toggleColorblind() {
     isColorblind = !isColorblind;
@@ -739,19 +802,25 @@ function applyAccessibilityPrefs() {
         // Only honor explicit user setting — don't auto-disable based on OS preference,
         // since fireworks/flips are short celebratory effects most players want by default.
         reducedMotion = localStorage.getItem('octordle_reduced_motion') === '1';
+        showTimer = localStorage.getItem('octordle_show_timer') === '1';
     } catch(e) {}
     if (isColorblind) document.body.classList.add('colorblind');
+    if (showTimer) document.body.classList.add('timer-on');
 }
 // ---- STATS ----
 function getStats(mode) {
-    const def = { played:0, wins:0, streak:0, maxStreak:0, dist:{} };
-    try { return JSON.parse(localStorage.getItem('octordle_stats_'+mode)) || def; } catch(e) { return def; }
+    const def = { played:0, wins:0, streak:0, maxStreak:0, dist:{}, bestTime:null };
+    try {
+        const s = JSON.parse(localStorage.getItem('octordle_stats_'+mode)) || def;
+        if (s.bestTime === undefined) s.bestTime = null; // migrate older saves
+        return s;
+    } catch(e) { return def; }
 }
 function saveStats(mode, s) {
     try { localStorage.setItem('octordle_stats_'+mode, JSON.stringify(s)); } catch(e) {}
 }
 let statsRecorded = false;
-function recordResult(mode, win, guessCount, maxG) {
+function recordResult(mode, win, guessCount, maxG, elapsedMs) {
     if (statsRecorded || !isGameOver) return; // only record completed games, and only once
     statsRecorded = true;
     const s = getStats(mode);
@@ -761,6 +830,9 @@ function recordResult(mode, win, guessCount, maxG) {
         s.streak++;
         if (s.streak > s.maxStreak) s.maxStreak = s.streak;
         s.dist[guessCount] = (s.dist[guessCount] || 0) + 1;
+        if (elapsedMs != null && elapsedMs > 0) {
+            if (s.bestTime == null || elapsedMs < s.bestTime) s.bestTime = elapsedMs;
+        }
     } else {
         s.streak = 0;
     }
@@ -805,6 +877,7 @@ function renderStats(mode) {
         totalWins += v;
     }
     document.getElementById('s-avg').textContent = totalWins ? (totalGuesses / totalWins).toFixed(1) : '—';
+    document.getElementById('s-best').textContent = fmtTime(s.bestTime);
     const maxG = MODE_GUESSES[mode];
     const maxVal = Math.max(1, ...Object.values(s.dist));
     const bars = document.getElementById('dist-bars');
@@ -867,6 +940,13 @@ init();
                 <div class="setting-desc">Disable tile flip & confetti animations</div>
             </div>
             <div class="toggle" id="toggle-motion" role="switch" tabindex="0" aria-label="Reduced motion" onclick="toggleMotion()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleMotion();}"></div>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <div class="setting-label">Show timer</div>
+                <div class="setting-desc">Display elapsed time in the header</div>
+            </div>
+            <div class="toggle" id="toggle-timer" role="switch" tabindex="0" aria-label="Show timer" onclick="toggleTimer()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTimer();}"></div>
         </div>
         <div class="setting-row">
             <div class="setting-info">
