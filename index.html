@@ -121,18 +121,24 @@
         #stats-btn { background: #2a2a2c; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 4px; padding: 3px 10px; font-size: 0.75rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
         #stats-btn:hover { background: #3a3a3c; }
         #stats-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; }
-        .stats-content { background: #1a1a1b; padding: 25px 30px; border-radius: 10px; border: 1px solid #3a3a3c; color: #ffffff; min-width: 320px; max-width: 480px; width: 90%; }
-        .stats-content h2 { margin: 0 0 4px 0; letter-spacing: 2px; font-size: 1rem; text-align: center; }
-        .stats-tabs { display: flex; gap: 6px; margin: 14px 0 18px; justify-content: center; }
-        .stats-tab { background: #2a2a2c; color: #aaa; border: 1px solid #3a3a3c; border-radius: 4px; padding: 4px 12px; font-size: 0.75rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
-        .stats-tab.active { background: #538d4e; color: #fff; border-color: #538d4e; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 20px; text-align: center; }
-        .stat-box { background: #121213; border-radius: 6px; padding: 10px 2px; }
-        .stat-num { font-size: 1.4rem; font-weight: bold; color: #ffffff; line-height: 1; }
-        .stat-label { font-size: 0.6rem; color: #888; margin-top: 4px; letter-spacing: 0.3px; }
+        .stats-content { background: #1a1a1b; padding: 18px 22px 20px; border-radius: 10px; border: 1px solid #3a3a3c; color: #ffffff; min-width: 300px; max-width: 460px; width: 92%; max-height: 92vh; overflow-y: auto; }
+        .stats-content h2 { margin: 0; letter-spacing: 2px; font-size: 1rem; text-align: center; }
+        #stats-mode-select { background: #2a2a2c; color: #fff; border: 1px solid #3a3a3c; border-radius: 4px; padding: 5px 10px; font-size: 0.8rem; font-family: inherit; cursor: pointer; font-weight: bold; letter-spacing: 0.5px; }
+        #stats-mode-select:focus { outline: none; border-color: #666; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 14px; text-align: center; }
+        .stat-box { background: #121213; border-radius: 6px; padding: 8px 2px; }
+        .stat-num { font-size: 1.25rem; font-weight: bold; color: #ffffff; line-height: 1; }
+        .stat-label { font-size: 0.58rem; color: #888; margin-top: 3px; letter-spacing: 0.3px; }
+        .dist-title { margin-bottom: 6px; }
+        .dist-row { margin-bottom: 3px; font-size: 0.75rem; }
+        .dist-bar-wrap { height: 16px; }
+        .dist-bar { min-width: 20px; font-size: 0.65rem; }
         /* === Header timer === */
         #timer-display { display: none; background: #2a2a2c; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 4px; padding: 3px 8px; font-size: 0.75rem; font-family: 'Menlo', monospace; font-weight: bold; letter-spacing: 1px; }
-        body.timer-on #timer-display { display: inline-block; }
+        body.timer-on #timer-display, body.timed-mode #timer-display { display: inline-block; }
+        body.timed-mode #timer-display { background: #263a4b; border-color: #3b82f6; }
+        #timer-display.warning { background: #5a2a2c; border-color: #e74c3c; color: #ff8080; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
         .dist-title { font-size: 0.7rem; letter-spacing: 1px; color: #888; margin-bottom: 10px; text-align: center; }
         .dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.8rem; }
         .dist-label { width: 20px; text-align: right; color: #aaa; flex-shrink: 0; }
@@ -244,6 +250,11 @@
             <option value="daily-chill">DAILY CHILL</option>
             <option value="daily">DAILY EXTREME</option>
         </optgroup>
+        <optgroup label="TIMED">
+            <option value="timed-1min">TIMED · 1 MIN</option>
+            <option value="timed-2min">TIMED · 2 MIN</option>
+            <option value="timed-3min">TIMED · 3 MIN</option>
+        </optgroup>
     </select>
     <span id="guess-counter" style="font-size:0.8rem;opacity:0.7;"></span>
     <span id="timer-display" aria-live="off">0:00</span>
@@ -264,15 +275,24 @@
     <div class="stats-content stats-content-wrap">
         <button class="stats-close" onclick="closeStats()">✕</button>
         <h2 id="stats-title">STATISTICS</h2>
-        <div class="stats-tabs">
-            <button class="stats-tab" data-mode="classic" onclick="switchStatsTab('classic')">CLASSIC</button>
-            <button class="stats-tab" data-mode="chill" onclick="switchStatsTab('chill')">CHILL</button>
-            <button class="stats-tab" data-mode="extreme" onclick="switchStatsTab('extreme')">EXTREME</button>
-        </div>
-        <div class="stats-tabs" style="margin-top:-10px;">
-            <button class="stats-tab" data-mode="daily-classic" onclick="switchStatsTab('daily-classic')">D-CLASSIC</button>
-            <button class="stats-tab" data-mode="daily-chill" onclick="switchStatsTab('daily-chill')">D-CHILL</button>
-            <button class="stats-tab" data-mode="daily" onclick="switchStatsTab('daily')">D-EXTREME</button>
+        <div style="text-align:center;margin:10px 0 14px;">
+            <select id="stats-mode-select" onchange="switchStatsTab(this.value)" aria-label="Stats mode">
+                <optgroup label="RANDOM">
+                    <option value="classic">Classic</option>
+                    <option value="chill">Chill</option>
+                    <option value="extreme">Extreme</option>
+                </optgroup>
+                <optgroup label="DAILY">
+                    <option value="daily-classic">Daily Classic</option>
+                    <option value="daily-chill">Daily Chill</option>
+                    <option value="daily">Daily Extreme</option>
+                </optgroup>
+                <optgroup label="TIMED">
+                    <option value="timed-1min">Timed · 1 Min</option>
+                    <option value="timed-2min">Timed · 2 Min</option>
+                    <option value="timed-3min">Timed · 3 Min</option>
+                </optgroup>
+            </select>
         </div>
         <div class="stats-grid">
             <div class="stat-box"><div class="stat-num" id="s-played">0</div><div class="stat-label">PLAYED</div></div>
@@ -307,13 +327,21 @@
 </div>
 <script>
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-const MODE_GUESSES = { classic: 13, chill: 16, extreme: 12, daily: 12, 'daily-classic': 13, 'daily-chill': 16 };
+const MODE_GUESSES = {
+    classic: 13, chill: 16, extreme: 12,
+    daily: 12, 'daily-classic': 13, 'daily-chill': 16,
+    'timed-1min': 15, 'timed-2min': 15, 'timed-3min': 15
+};
+// Time-limited modes: ms budget from first keystroke. Time-out = loss.
+const MODE_TIME_LIMITS = { 'timed-1min': 60000, 'timed-2min': 120000, 'timed-3min': 180000 };
 // Helpers — keep 'daily' as the legacy key for what's now called DAILY EXTREME
 function isDailyMode(m) { return m === 'daily' || m === 'daily-classic' || m === 'daily-chill'; }
+function isTimedMode(m) { return MODE_TIME_LIMITS[m] != null; }
 function friendlyMode(m) {
     return ({
         classic: 'Classic', chill: 'Chill', extreme: 'Extreme',
-        daily: 'Daily Extreme', 'daily-classic': 'Daily Classic', 'daily-chill': 'Daily Chill'
+        daily: 'Daily Extreme', 'daily-classic': 'Daily Classic', 'daily-chill': 'Daily Chill',
+        'timed-1min': 'Timed 1 Min', 'timed-2min': 'Timed 2 Min', 'timed-3min': 'Timed 3 Min'
     })[m] || m;
 }
 const modeSelect = document.getElementById('mode-select');
@@ -373,6 +401,7 @@ let showTimer = false;
 let gameStartTime = null;  // ms since epoch when this game's timer started (first keystroke)
 let finalElapsedMs = null; // set on game end
 let timerIntervalId = null;
+let endedByTime = false;   // true if a timed mode game ended because the clock ran out
 // ---------- Timer ----------
 function fmtTime(ms) {
     if (ms == null) return '—';
@@ -384,14 +413,32 @@ function fmtTime(ms) {
 function updateTimerDisplay() {
     const el = document.getElementById('timer-display');
     if (!el) return;
-    if (gameStartTime == null) { el.textContent = '0:00'; return; }
+    const timed = isTimedMode(currentMode);
+    if (gameStartTime == null) {
+        el.textContent = timed ? fmtTime(MODE_TIME_LIMITS[currentMode]) : '0:00';
+        el.classList.remove('warning');
+        return;
+    }
     const elapsed = (finalElapsedMs != null) ? finalElapsedMs : (Date.now() - gameStartTime);
-    el.textContent = fmtTime(elapsed);
+    if (timed) {
+        const remaining = Math.max(0, MODE_TIME_LIMITS[currentMode] - elapsed);
+        el.textContent = fmtTime(remaining);
+        el.classList.toggle('warning', remaining > 0 && remaining <= 10000);
+        if (remaining === 0 && !isGameOver) {
+            endedByTime = true;
+            endGame(false);
+        }
+    } else {
+        el.textContent = fmtTime(elapsed);
+        el.classList.remove('warning');
+    }
 }
 function startTimerTick() {
     if (timerIntervalId) return;
     updateTimerDisplay();
-    timerIntervalId = setInterval(updateTimerDisplay, 500);
+    // Timed modes tick faster so the countdown is smooth and end-of-time is snappy
+    const interval = isTimedMode(currentMode) ? 200 : 500;
+    timerIntervalId = setInterval(updateTimerDisplay, interval);
 }
 function stopTimerTick() {
     if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
@@ -454,6 +501,8 @@ function updateCounter() {
 }
 function init() {
     maxGuesses = MODE_GUESSES[modeSelect.value];
+    // Timed modes always show the timer regardless of the user's Show Timer setting
+    if (isTimedMode(currentMode)) document.body.classList.add('timed-mode');
     const gv = document.getElementById('game-view'), tr = document.getElementById('tracker');
     for (let i = 0; i < 8; i++) {
         const c = document.createElement('div'); c.className = 'board-container';
@@ -692,7 +741,7 @@ function showEndGameModal(win, fromRestore) {
             if (!fromRestore && !reducedMotion) startFireworks();
             announce(`Victory. All 8 boards solved in ${guesses.length} guesses.`);
         } else {
-            title.textContent = "GAME OVER"; title.style.color = "#e74c3c";
+            title.textContent = endedByTime ? "TIME'S UP" : "GAME OVER"; title.style.color = "#e74c3c";
             document.getElementById('answers-container').style.display = "block";
             const list = document.getElementById('ans-list');
             TARGET_WORDS.forEach((w, i) => {
@@ -856,15 +905,15 @@ function resetAllStats() {
 let statsTab = currentMode;
 function openStats() {
     statsTab = currentMode;
+    document.getElementById('stats-mode-select').value = statsTab;
     renderStats(statsTab);
     document.getElementById('stats-modal').style.display = 'flex';
 }
 function closeStats() { document.getElementById('stats-modal').style.display = 'none'; }
 function switchStatsTab(mode) { statsTab = mode; renderStats(mode); }
 function renderStats(mode) {
-    document.querySelectorAll('.stats-tab').forEach(t => {
-        t.classList.toggle('active', t.getAttribute('data-mode') === mode);
-    });
+    const sel = document.getElementById('stats-mode-select');
+    if (sel && sel.value !== mode) sel.value = mode;
     const s = getStats(mode);
     document.getElementById('s-played').textContent = s.played;
     document.getElementById('s-win').textContent = s.played ? Math.round(s.wins/s.played*100)+'%' : '0%';
@@ -919,7 +968,8 @@ init();
         <p>Each letter key has 8 small dots — one per board. Each dot shows that letter's status on that board: <span class="intro-dotex"><span class="dot c"></span><span class="dot p"></span><span class="dot a"></span><span class="dot u"></span></span> green / yellow / gray / unused.</p>
         <h3>MODES</h3>
         <p><strong>CLASSIC</strong> 13 guesses · <strong>CHILL</strong> 16 guesses · <strong>EXTREME</strong> 12 guesses.</p>
-        <p>Each difficulty also has a <strong>DAILY</strong> variant — the same 8 words for every player, refreshing once per day. One play per daily per day.</p>
+        <p><strong>DAILY</strong> variants share the same 8 words for every player, refreshing once per day. One play per daily per day.</p>
+        <p><strong>TIMED</strong> variants (1, 2, or 3 minutes) give you 15 guesses within a hard time limit — the countdown starts on your first keystroke. Running out of time counts as a loss.</p>
         <button class="play-btn" onclick="closeIntro()" style="margin-top:18px;width:100%;">GOT IT</button>
     </div>
 </div>
