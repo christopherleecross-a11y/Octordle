@@ -226,6 +226,11 @@
         #toast { position: fixed; top: 18%; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 10px 18px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; z-index: 5000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
         /* === Screen reader only === */
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        /* === Best time badge === */
+        #best-time-badge { display: none; margin: 10px auto 4px; padding: 10px 16px; background: linear-gradient(135deg, #b8860b, #f4c430); color: #1a1a1b; border-radius: 8px; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px; max-width: 320px; box-shadow: 0 2px 12px rgba(244, 196, 48, 0.4); animation: bestPulse 1.8s ease-in-out infinite; }
+        #best-time-badge .bt-headline { font-size: 1.05rem; text-transform: uppercase; }
+        #best-time-badge .bt-detail { font-size: 0.7rem; font-weight: normal; margin-top: 4px; opacity: 0.85; letter-spacing: 0.5px; }
+        @keyframes bestPulse { 0%,100%{transform:scale(1);box-shadow:0 2px 12px rgba(244,196,48,0.4);} 50%{transform:scale(1.03);box-shadow:0 4px 20px rgba(244,196,48,0.7);} }
         /* === Reset buttons === */
         .reset-btn { background: #2a2a2c; color: #ccc; border: 1px solid #3a3a3c; border-radius: 4px; padding: 6px 12px; font-size: 0.7rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
         .reset-btn:hover { background: #3a3a3c; color: #fff; }
@@ -313,6 +318,7 @@
 <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:2000;">
     <div class="modal-content">
         <h2 id="modal-title" style="color:#ffffff;"></h2>
+        <div id="best-time-badge" style="display:none;"></div>
         <div id="daily-complete-msg" style="display:none;color:#aaa;font-size:0.85rem;margin:8px 0;">Come back tomorrow for a new daily challenge.</div>
         <div id="answers-container" style="display:none;">
             <p><strong>Missed Words:</strong></p>
@@ -730,6 +736,20 @@ function showEndGameModal(win, fromRestore) {
         document.getElementById('answers-container').style.display = "none";
         document.getElementById('ans-list').innerHTML = '';
         document.getElementById('daily-complete-msg').style.display = isDailyMode(currentMode) ? 'block' : 'none';
+        // Best-time badge — only when we just achieved it this game (not on restore)
+        const badge = document.getElementById('best-time-badge');
+        if (win && !fromRestore && isNewBestTime && finalElapsedMs != null) {
+            const isFirstEver = previousBestTime == null;
+            const headline = isFirstEver ? '🏆 First Recorded Time!' : '🏆 New Best Time!';
+            const detail = isFirstEver
+                ? `${fmtTime(finalElapsedMs)} · ${friendlyMode(currentMode)}`
+                : `${fmtTime(finalElapsedMs)} · beat previous ${fmtTime(previousBestTime)}`;
+            badge.innerHTML = `<div class="bt-headline">${headline}</div><div class="bt-detail">${detail}</div>`;
+            badge.style.display = 'block';
+            announce(isFirstEver ? 'First recorded time.' : `New best time. ${fmtTime(finalElapsedMs)}, beating previous ${fmtTime(previousBestTime)}.`);
+        } else {
+            badge.style.display = 'none';
+        }
         // If we're in daily mode and player already played today, hide PLAY AGAIN
         const playBtn = document.getElementById('play-again-btn');
         if (isDailyMode(currentMode)) {
@@ -790,6 +810,11 @@ function shareResults() {
     }
     lines.push('');
     if (won) {
+        if (isNewBestTime && finalElapsedMs != null) {
+            lines.push(`🏆 NEW BEST TIME: ${fmtTime(finalElapsedMs)}`);
+        } else if (finalElapsedMs != null) {
+            lines.push(`⏱ Time: ${fmtTime(finalElapsedMs)}`);
+        }
         if (stats.streak > 1) lines.push(`🔥 Win streak: ${stats.streak}`);
         else if (stats.streak === 1) lines.push(`🌱 New streak started`);
         const solvedNums = boardGuesses.filter(g => g != null);
@@ -869,6 +894,8 @@ function saveStats(mode, s) {
     try { localStorage.setItem('octordle_stats_'+mode, JSON.stringify(s)); } catch(e) {}
 }
 let statsRecorded = false;
+let isNewBestTime = false;      // set true when this win beat the previous best
+let previousBestTime = null;    // the old best (for the "beat X:XX" badge)
 function recordResult(mode, win, guessCount, maxG, elapsedMs) {
     if (statsRecorded || !isGameOver) return; // only record completed games, and only once
     statsRecorded = true;
@@ -880,7 +907,11 @@ function recordResult(mode, win, guessCount, maxG, elapsedMs) {
         if (s.streak > s.maxStreak) s.maxStreak = s.streak;
         s.dist[guessCount] = (s.dist[guessCount] || 0) + 1;
         if (elapsedMs != null && elapsedMs > 0) {
-            if (s.bestTime == null || elapsedMs < s.bestTime) s.bestTime = elapsedMs;
+            previousBestTime = s.bestTime;
+            if (s.bestTime == null || elapsedMs < s.bestTime) {
+                s.bestTime = elapsedMs;
+                isNewBestTime = true;
+            }
         }
     } else {
         s.streak = 0;
