@@ -911,10 +911,14 @@ function init() {
     }
 }
 function repaintFromSavedState() {
-    for (let g = 0; g < guesses.length; g++) {
-        const word = guesses[g];
-        for (let i = 0; i < 8; i++) {
-            const target = TARGET_WORDS[i];
+    // Iterate per-board so we can stop applying guesses once the board is solved.
+    // The old order (per-guess, then per-board) would keep painting later guesses
+    // onto boards that had already been solved, which the viewer would see as
+    // "the solved board keeps getting new guesses."
+    for (let i = 0; i < 8; i++) {
+        const target = TARGET_WORDS[i];
+        for (let g = 0; g < guesses.length; g++) {
+            const word = guesses[g];
             const row = document.getElementById(`grid-${i}`).children[g];
             const ga = word.split("");
             let states = new Array(5).fill("absent"), tc = {};
@@ -926,7 +930,10 @@ function repaintFromSavedState() {
                 row.children[c].setAttribute('data-state', states[c]);
                 row.children[c].setAttribute('aria-label', `${ga[c]} ${states[c]}`);
             }
-            if (solved[i]) document.getElementById(`track-${i}`).classList.add('solved');
+            if (word === target) {
+                document.getElementById(`track-${i}`).classList.add('solved');
+                break; // stop painting later guesses on this now-solved board
+            }
         }
     }
     // Repaint keyboard from saved key states
