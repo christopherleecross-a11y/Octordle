@@ -231,6 +231,48 @@
         #best-time-badge .bt-headline { font-size: 1.05rem; text-transform: uppercase; }
         #best-time-badge .bt-detail { font-size: 0.7rem; font-weight: normal; margin-top: 4px; opacity: 0.85; letter-spacing: 0.5px; }
         @keyframes bestPulse { 0%,100%{transform:scale(1);box-shadow:0 2px 12px rgba(244,196,48,0.4);} 50%{transform:scale(1.03);box-shadow:0 4px 20px rgba(244,196,48,0.7);} }
+        /* === Player chip + modal === */
+        #player-chip { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #players-modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:none; justify-content: center; align-items: center; z-index: 3600; }
+        .players-content { background: #1a1a1b; padding: 22px 26px; border-radius: 10px; border: 1px solid #3a3a3c; color: #fff; min-width: 300px; max-width: 400px; width: 92%; position: relative; }
+        .players-content h2 { margin: 0 0 14px; letter-spacing: 2px; font-size: 1rem; text-align: center; }
+        .player-list { display: flex; flex-direction: column; gap: 4px; margin: 12px 0 16px; max-height: 240px; overflow-y: auto; }
+        .player-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #121213; border: 1px solid #2a2a2c; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+        .player-row:hover { background: #202021; }
+        .player-row.current { border-color: #538d4e; background: #1b2b1b; cursor: default; }
+        body.colorblind .player-row.current { border-color: #3b82f6; background: #1b2130; }
+        .player-name { font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .player-actions { display: flex; gap: 6px; }
+        .player-action-btn { background: transparent; border: 1px solid #3a3a3c; color: #aaa; border-radius: 4px; padding: 3px 8px; font-size: 0.65rem; cursor: pointer; letter-spacing: 0.5px; font-weight: bold; }
+        .player-action-btn:hover { color: #fff; border-color: #666; }
+        .player-action-btn.danger:hover { color: #e74c3c; border-color: #5a2a2c; }
+        .player-add { background: #2a2a2c; color: #fff; border: 1px dashed #3a3a3c; border-radius: 6px; padding: 10px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-align: center; letter-spacing: 1px; }
+        .player-add:hover { background: #3a3a3c; }
+        /* === Multiplayer === */
+        #mp-btn { background: #4a90e2; color: #fff; border: 1px solid #4a90e2; border-radius: 4px; padding: 3px 10px; font-size: 0.75rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
+        #mp-btn:hover { background: #5fa0f0; }
+        #mp-banner { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 90; background: linear-gradient(90deg, #263a4b, #3b82f6); color: #fff; padding: 6px 10px; font-size: 0.75rem; text-align: center; letter-spacing: 0.5px; font-weight: bold; }
+        #mp-banner button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.4); border-radius: 3px; padding: 2px 8px; font-size: 0.7rem; font-weight: bold; cursor: pointer; margin-left: 8px; }
+        #mp-banner button:hover { background: rgba(255,255,255,0.15); }
+        body.mp-active header { margin-top: 26px; }
+        body.mp-viewer .key { opacity: 0.55; cursor: not-allowed; }
+        body.mp-viewer #play-again-btn { display: none; }
+        #mp-modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:none; justify-content: center; align-items: center; z-index: 3700; padding: 16px; }
+        .mp-content { background: #1a1a1b; padding: 22px 26px; border-radius: 10px; border: 1px solid #3a3a3c; color: #fff; min-width: 300px; max-width: 420px; width: 92%; position: relative; }
+        .mp-content h2 { margin: 0 0 4px; letter-spacing: 2px; font-size: 1rem; text-align: center; }
+        .mp-content .subtitle { text-align:center; font-size:0.7rem; color:#888; margin:0 0 16px; letter-spacing: 0.5px; }
+        .mp-choice { display: flex; gap: 10px; margin-top: 8px; }
+        .mp-choice button { flex: 1; padding: 16px 12px; font-size: 0.95rem; font-weight: bold; letter-spacing: 1px; border-radius: 8px; border: none; cursor: pointer; }
+        .mp-choice .host-btn { background: #538d4e; color: #fff; }
+        .mp-choice .host-btn:hover { background: #6aad62; }
+        .mp-choice .join-btn { background: #4a90e2; color: #fff; }
+        .mp-choice .join-btn:hover { background: #5fa0f0; }
+        .mp-status { margin: 14px 0; padding: 14px; background: #121213; border: 1px solid #2a2a2c; border-radius: 8px; text-align: center; }
+        .mp-code { font-family: 'Menlo', monospace; font-size: 2rem; letter-spacing: 8px; font-weight: bold; color: #3b82f6; margin: 6px 0; }
+        .mp-viewers { font-size: 0.75rem; color: #aaa; margin-top: 8px; }
+        .mp-join-input { width: 100%; padding: 12px; font-size: 1.4rem; font-family: 'Menlo', monospace; text-align: center; letter-spacing: 6px; background: #121213; color: #fff; border: 1px solid #3a3a3c; border-radius: 6px; text-transform: uppercase; }
+        .mp-join-input:focus { outline: none; border-color: #4a90e2; }
+        .mp-hint { font-size: 0.7rem; color: #888; text-align: center; margin: 8px 0; line-height: 1.4; }
         /* === Reset buttons === */
         .reset-btn { background: #2a2a2c; color: #ccc; border: 1px solid #3a3a3c; border-radius: 4px; padding: 6px 12px; font-size: 0.7rem; font-family: inherit; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
         .reset-btn:hover { background: #3a3a3c; color: #fff; }
@@ -242,6 +284,7 @@
     </style>
 </head>
 <body>
+<div id="mp-banner"></div>
 <header>
     OCTORDLE
     <select id="mode-select" aria-label="Game mode">
@@ -266,6 +309,8 @@
     <button class="icon-btn" onclick="openIntro()" aria-label="How to play">HELP</button>
     <button class="icon-btn" onclick="openSettings()" aria-label="Settings">⚙</button>
     <button id="stats-btn" onclick="openStats()">STATS</button>
+    <button class="icon-btn" id="player-chip" onclick="openPlayers()" aria-label="Switch player" title="Switch player">👤 <span id="player-chip-name">—</span></button>
+    <button id="mp-btn" onclick="openMultiplayer()" aria-label="Multiplayer">MULTI</button>
 </header>
 <div id="game-view"></div>
 <div id="bottom-container">
@@ -340,6 +385,315 @@ const MODE_GUESSES = {
 };
 // Time-limited modes: ms budget from first keystroke. Time-out = loss.
 const MODE_TIME_LIMITS = { 'timed-1min': 60000, 'timed-2min': 120000, 'timed-3min': 180000 };
+// ---------- Local player profiles (no auth, per-device) ----------
+let currentProfileId = null;
+function loadProfiles() {
+    try { return JSON.parse(localStorage.getItem('octordle_profiles')) || []; } catch(e) { return []; }
+}
+function saveProfiles(list) {
+    try { localStorage.setItem('octordle_profiles', JSON.stringify(list)); } catch(e) {}
+}
+function newProfileId(existing) {
+    let n = existing.length + 1;
+    while (existing.some(p => p.id === 'p' + n)) n++;
+    return 'p' + n;
+}
+function initProfiles() {
+    let profiles = loadProfiles();
+    if (profiles.length === 0) {
+        // First-time or pre-profile-system user: create default and migrate existing keys
+        const defaultProfile = { id: 'p1', name: 'Player 1' };
+        profiles = [defaultProfile];
+        saveProfiles(profiles);
+        localStorage.setItem('octordle_current_profile', 'p1');
+        // Migrate any existing octordle_* keys (from before this update) to p1
+        const oldKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('octordle_') && k !== 'octordle_profiles' && k !== 'octordle_current_profile' && !k.startsWith('octordle_p_')) {
+                oldKeys.push(k);
+            }
+        }
+        oldKeys.forEach(k => {
+            const v = localStorage.getItem(k);
+            const suffix = k.substring('octordle_'.length);
+            localStorage.setItem('octordle_p_p1_' + suffix, v);
+            localStorage.removeItem(k);
+        });
+    }
+    currentProfileId = localStorage.getItem('octordle_current_profile');
+    if (!currentProfileId || !profiles.some(p => p.id === currentProfileId)) {
+        currentProfileId = profiles[0].id;
+        localStorage.setItem('octordle_current_profile', currentProfileId);
+    }
+}
+function pk(key) { return 'octordle_p_' + currentProfileId + '_' + key; }
+function currentProfileName() {
+    const p = loadProfiles().find(p => p.id === currentProfileId);
+    return p ? p.name : 'Player';
+}
+initProfiles();
+
+// ---------- Multiplayer (spectator via WebRTC/PeerJS) ----------
+let mpPeer = null;
+let mpRole = null;         // 'host' | 'viewer' | null
+let mpRoomCode = null;
+let mpConnections = [];    // host: list of viewer connections
+let mpHostConn = null;     // viewer: connection back to host
+let mpBroadcastQueued = false;
+
+function ensurePeerJsLoaded() {
+    return new Promise((resolve, reject) => {
+        if (window.Peer) return resolve();
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Could not load multiplayer library. Check your internet connection.'));
+        document.head.appendChild(s);
+    });
+}
+function generateRoomCode() {
+    let code = '';
+    for (let i = 0; i < 4; i++) code += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    return code;
+}
+function peerIdFor(code) { return 'octordle-mp-' + code.toUpperCase(); }
+function updateMpBanner() {
+    const banner = document.getElementById('mp-banner');
+    if (!mpRole) {
+        banner.style.display = 'none';
+        document.body.classList.remove('mp-active', 'mp-viewer');
+        return;
+    }
+    banner.style.display = 'block';
+    document.body.classList.add('mp-active');
+    if (mpRole === 'host') {
+        document.body.classList.remove('mp-viewer');
+        const n = mpConnections.length;
+        banner.innerHTML = `🎮 HOSTING · Code: <strong>${mpRoomCode}</strong> · ${n} viewer${n===1?'':'s'} <button onclick="endMultiplayer()">END</button>`;
+    } else {
+        document.body.classList.add('mp-viewer');
+        banner.innerHTML = `👁 VIEWING · Code: <strong>${mpRoomCode}</strong> · ${currentProfileName()} · <button onclick="endMultiplayer()">LEAVE</button>`;
+    }
+}
+async function startHosting() {
+    const body = document.getElementById('mp-body');
+    body.innerHTML = '<p class="mp-hint">Connecting…</p>';
+    try {
+        await ensurePeerJsLoaded();
+        const code = generateRoomCode();
+        mpPeer = new Peer(peerIdFor(code));
+        mpPeer.on('open', () => {
+            mpRole = 'host';
+            mpRoomCode = code;
+            renderHostStatus();
+            updateMpBanner();
+        });
+        mpPeer.on('connection', conn => {
+            mpConnections.push(conn);
+            conn.on('open', () => {
+                // Send full game state to the new viewer immediately
+                try { conn.send({ type: 'state', state: getGameSnapshot() }); } catch(e) {}
+            });
+            conn.on('close', () => {
+                mpConnections = mpConnections.filter(c => c !== conn);
+                renderHostStatus();
+                updateMpBanner();
+            });
+            renderHostStatus();
+            updateMpBanner();
+        });
+        mpPeer.on('error', err => {
+            // ID taken? try another code
+            if (err.type === 'unavailable-id') {
+                cleanupPeer();
+                startHosting();
+                return;
+            }
+            body.innerHTML = `<p class="mp-hint" style="color:#e74c3c;">Connection error: ${err.type || err.message || 'unknown'}. Try again in a moment.</p>`;
+        });
+    } catch(e) {
+        body.innerHTML = `<p class="mp-hint" style="color:#e74c3c;">${e.message}</p>`;
+    }
+}
+function renderHostStatus() {
+    if (mpRole !== 'host') return;
+    const body = document.getElementById('mp-body');
+    if (!body) return;
+    body.innerHTML = `
+        <div class="mp-status">
+            <div style="font-size:0.75rem;color:#aaa;letter-spacing:1px;">ROOM CODE</div>
+            <div class="mp-code">${mpRoomCode}</div>
+            <div style="font-size:0.75rem;color:#aaa;">Share this code with people in the room</div>
+            <div class="mp-viewers">${mpConnections.length} viewer${mpConnections.length===1?'':'s'} connected</div>
+        </div>
+        <p class="mp-hint">You're the typist. Everything you do (typing, submitting, mode changes) will appear on their screens in real time.</p>
+        <button class="reset-btn danger" style="width:100%;padding:10px;" onclick="endMultiplayer()">END SESSION</button>
+    `;
+}
+function showJoinInput() {
+    const body = document.getElementById('mp-body');
+    body.innerHTML = `
+        <p class="mp-hint">Enter the 4-letter code from the host.</p>
+        <input class="mp-join-input" id="mp-join-input" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" />
+        <div class="mp-choice">
+            <button class="join-btn" onclick="joinRoom()">JOIN</button>
+            <button class="reset-btn" style="padding:16px;" onclick="resetMultiplayerModal()">BACK</button>
+        </div>
+    `;
+    setTimeout(() => document.getElementById('mp-join-input').focus(), 50);
+}
+function resetMultiplayerModal() {
+    document.getElementById('mp-body').innerHTML = `
+        <p class="mp-hint">One person hosts and plays. Others join with the code and watch in real time on their own devices.</p>
+        <div class="mp-choice">
+            <button class="host-btn" onclick="startHosting()">HOST</button>
+            <button class="join-btn" onclick="showJoinInput()">JOIN</button>
+        </div>`;
+}
+async function joinRoom() {
+    const input = document.getElementById('mp-join-input');
+    const code = (input.value || '').trim().toUpperCase();
+    if (code.length !== 4) return showToast('Enter a 4-letter code', 2500);
+    const body = document.getElementById('mp-body');
+    body.innerHTML = '<p class="mp-hint">Connecting…</p>';
+    try {
+        await ensurePeerJsLoaded();
+        mpPeer = new Peer();
+        mpPeer.on('open', () => {
+            mpHostConn = mpPeer.connect(peerIdFor(code), { reliable: true });
+            const openTimer = setTimeout(() => {
+                if (!mpHostConn.open) {
+                    body.innerHTML = '<p class="mp-hint" style="color:#e74c3c;">No host found with that code. Double-check and try again.</p><button class="reset-btn" style="width:100%;padding:10px;margin-top:8px;" onclick="cleanupPeer();resetMultiplayerModal()">BACK</button>';
+                }
+            }, 6000);
+            mpHostConn.on('open', () => {
+                clearTimeout(openTimer);
+                mpRole = 'viewer';
+                mpRoomCode = code;
+                updateMpBanner();
+                closeMultiplayer();
+                showToast('Connected — viewing host');
+            });
+            mpHostConn.on('data', data => {
+                if (data && data.type === 'state') applyRemoteState(data.state);
+            });
+            mpHostConn.on('close', () => {
+                showToast('Host disconnected');
+                cleanupPeer();
+                updateMpBanner();
+            });
+        });
+        mpPeer.on('error', err => {
+            body.innerHTML = `<p class="mp-hint" style="color:#e74c3c;">Connection error: ${err.type || err.message || 'unknown'}. The code may be wrong or the host is offline.</p><button class="reset-btn" style="width:100%;padding:10px;margin-top:8px;" onclick="cleanupPeer();resetMultiplayerModal()">BACK</button>`;
+        });
+    } catch(e) {
+        body.innerHTML = `<p class="mp-hint" style="color:#e74c3c;">${e.message}</p>`;
+    }
+}
+function endMultiplayer() {
+    cleanupPeer();
+    updateMpBanner();
+    // Rebuild board fresh for viewers who were locked in host's mode
+    if (mpRole === 'viewer') location.reload();
+}
+function cleanupPeer() {
+    try { mpConnections.forEach(c => c.close && c.close()); } catch(e) {}
+    try { mpHostConn && mpHostConn.close(); } catch(e) {}
+    try { mpPeer && mpPeer.destroy(); } catch(e) {}
+    mpPeer = null; mpConnections = []; mpHostConn = null; mpRole = null; mpRoomCode = null;
+}
+function openMultiplayer() {
+    if (mpRole) {
+        // Already in a session — reopen status view
+        if (mpRole === 'host') renderHostStatus();
+        else document.getElementById('mp-body').innerHTML = `<p class="mp-hint">Currently viewing room <strong>${mpRoomCode}</strong>. Leave the session to switch.</p><button class="reset-btn danger" style="width:100%;padding:10px;" onclick="endMultiplayer();closeMultiplayer();">LEAVE SESSION</button>`;
+    } else {
+        resetMultiplayerModal();
+    }
+    document.getElementById('mp-modal').style.display = 'flex';
+}
+function closeMultiplayer() { document.getElementById('mp-modal').style.display = 'none'; }
+// ---------- Snapshot / apply for state sync ----------
+function getGameSnapshot() {
+    return {
+        mode: currentMode, maxGuesses: maxGuesses,
+        targets: TARGET_WORDS, guesses: guesses.slice(), currentGuess: currentGuess,
+        solved: solved.slice(),
+        globalKeyStates: {...globalKeyStates},
+        boardKeyStates: JSON.parse(JSON.stringify(boardKeyStates)),
+        isGameOver: isGameOver
+    };
+}
+function scheduleBroadcast() {
+    if (mpRole !== 'host' || mpConnections.length === 0) return;
+    if (mpBroadcastQueued) return;
+    mpBroadcastQueued = true;
+    setTimeout(() => {
+        mpBroadcastQueued = false;
+        const snap = getGameSnapshot();
+        mpConnections.forEach(c => { try { c.send({ type: 'state', state: snap }); } catch(e) {} });
+    }, 30);
+}
+function applyRemoteState(state) {
+    if (mpRole !== 'viewer' || !state) return;
+    const modeChanged = state.mode !== currentMode || state.maxGuesses !== maxGuesses;
+    currentMode = state.mode;
+    maxGuesses = state.maxGuesses;
+    TARGET_WORDS = state.targets;
+    guesses = state.guesses;
+    currentGuess = state.currentGuess || '';
+    solved = state.solved;
+    globalKeyStates = state.globalKeyStates || {};
+    boardKeyStates = state.boardKeyStates || {};
+    const wasGameOver = isGameOver;
+    isGameOver = state.isGameOver;
+    if (modeChanged) {
+        // Rebuild boards to match host's mode
+        document.getElementById('game-view').innerHTML = '';
+        document.getElementById('tracker').innerHTML = '';
+        for (let i = 0; i < 8; i++) {
+            const c = document.createElement('div'); c.className = 'board-container';
+            c.innerHTML = `<div style="font-size:8px;color:#888;margin-bottom:2px;text-align:center;">BOARD ${i+1}</div><div class="grid" id="grid-${i}" role="grid" aria-label="Board ${i+1}" style="grid-template-rows:repeat(${maxGuesses},1fr);"></div>`;
+            const g = c.querySelector('.grid');
+            for (let r = 0; r < maxGuesses; r++) {
+                const row = document.createElement('div'); row.className = 'row';
+                for (let cc = 0; cc < 5; cc++) { const t = document.createElement('div'); t.className = 'tile'; row.appendChild(t); }
+                g.appendChild(row);
+            }
+            document.getElementById('game-view').appendChild(c);
+            const ti = document.createElement('div'); ti.className = 'tracker-item'; ti.id = `track-${i}`; ti.textContent = i+1;
+            document.getElementById('tracker').appendChild(ti);
+        }
+    } else {
+        // Clear tiles to repaint fresh
+        for (let i = 0; i < 8; i++) {
+            const grid = document.getElementById(`grid-${i}`);
+            if (!grid) continue;
+            for (const row of grid.children) {
+                for (const t of row.children) { t.textContent = ''; t.removeAttribute('data-state'); }
+            }
+            document.getElementById(`track-${i}`).classList.remove('solved');
+        }
+        // Clear keyboard
+        document.querySelectorAll('.key').forEach(k => k.removeAttribute('data-state'));
+        document.querySelectorAll('.dot').forEach(d => d.removeAttribute('data-state'));
+    }
+    repaintFromSavedState();
+    updateView();      // show any in-progress currentGuess
+    updateCounter();
+    updateActiveRow();
+    // If host reached game-over and we haven't shown modal, show it (no stats recording)
+    if (isGameOver && !wasGameOver) {
+        const won = solved.every(s => s);
+        showEndGameModal(won, false);
+    } else if (!isGameOver) {
+        // Host started a new game — hide any lingering modal
+        document.getElementById('modal').style.display = 'none';
+        stopFireworks();
+    }
+}
+
 // Helpers — keep 'daily' as the legacy key for what's now called DAILY EXTREME
 function isDailyMode(m) { return m === 'daily' || m === 'daily-classic' || m === 'daily-chill'; }
 function isTimedMode(m) { return MODE_TIME_LIMITS[m] != null; }
@@ -353,7 +707,7 @@ function friendlyMode(m) {
 const modeSelect = document.getElementById('mode-select');
 // Restore previously chosen mode (falls back to the HTML default if nothing saved)
 try {
-    const savedMode = localStorage.getItem('octordle_mode');
+    const savedMode = localStorage.getItem(pk('mode'));
     if (savedMode && MODE_GUESSES[savedMode]) modeSelect.value = savedMode;
 } catch(e) {}
 let maxGuesses = MODE_GUESSES[modeSelect.value];
@@ -362,7 +716,7 @@ modeSelect.addEventListener('change', () => {
     if (guesses.length > 0 || isGameOver) {
         if (!confirm('Changing mode will restart the game. Continue?')) { modeSelect.value = currentMode; return; }
     }
-    try { localStorage.setItem('octordle_mode', modeSelect.value); } catch(e) {}
+    try { localStorage.setItem(pk('mode'), modeSelect.value); } catch(e) {}
     location.reload();
 });
 const WORD_POOL = ["ABACK","ABASE","ABATE","ABBEY","ABBOT","ABHOR","ABIDE","ABLED","ABODE","ABORT","ABOUT","ABOVE","ABUSE","ABYSS","ACORN","ACRID","ACTOR","ACUTE","ADAGE","ADAPT","ADEPT","ADMIN","ADMIT","ADOBE","ADOPT","ADORE","ADORN","ADULT","AFFIX","AFIRE","AFOOT","AFOUL","AFTER","AGAIN","AGAPE","AGATE","AGENT","AGILE","AGING","AGLOW","AGONY","AGORA","AGREE","AHEAD","AIDER","AISLE","ALARM","ALBUM","ALERT","ALGAE","ALIBI","ALIEN","ALIGN","ALIKE","ALIVE","ALLAY","ALLEY","ALLOT","ALLOW","ALLOY","ALOFT","ALONE","ALONG","ALOOF","ALOUD","ALPHA","ALTAR","ALTER","AMASS","AMAZE","AMBER","AMBLE","AMEND","AMISS","AMITY","AMONG","AMPLE","AMPLY","AMUSE","ANGEL","ANGER","ANGLE","ANGRY","ANGST","ANIME","ANKLE","ANNEX","ANNOY","ANNUL","ANODE","ANTIC","ANVIL","AORTA","APART","APHID","APING","APNEA","APPLE","APPLY","APRON","APTLY","ARBOR","ARDOR","ARENA","ARGUE","ARISE","ARMOR","AROMA","AROSE","ARRAY","ARROW","ARSON","ARTSY","ASCOT","ASHEN","ASIDE","ASKEW","ASSAY","ASSET","ATOLL","ATONE","ATTIC","AUDIO","AUDIT","AUGUR","AUNTY","AVAIL","AVERT","AVIAN","AVOID","AWAIT","AWAKE","AWARD","AWARE","AWASH","AWFUL","AWOKE","AXIAL","AXIOM","AXION","AZURE","BACON","BADGE","BADLY","BAGEL","BAGGY","BAKER","BALER","BALMY","BANAL","BANJO","BARGE","BARON","BASAL","BASIC","BASIL","BASIN","BASIS","BASTE","BATCH","BATHE","BATON","BATTY","BAWDY","BAYOU","BEACH","BEADY","BEARD","BEAST","BEECH","BEEFY","BEFIT","BEGAN","BEGAT","BEGET","BEGIN","BEGUN","BEING","BELCH","BELIE","BELLE","BELLY","BELOW","BENCH","BERET","BERRY","BERTH","BESET","BETEL","BEVEL","BEZEL","BIBLE","BICEP","BIDDY","BIGOT","BILGE","BILLY","BINGE","BINGO","BIOME","BIRCH","BIRTH","BISON","BITTY","BLACK","BLADE","BLAME","BLAND","BLANK","BLARE","BLAST","BLAZE","BLEAK","BLEAT","BLEED","BLEEP","BLEND","BLESS","BLIMP","BLIND","BLINK","BLISS","BLITZ","BLOAT","BLOCK","BLOKE","BLOND","BLOOD","BLOOM","BLOWN","BLUER","BLUFF","BLUNT","BLURB","BLURT","BLUSH","BOARD","BOAST","BOBBY","BONEY","BONGO","BONUS","BOOBY","BOOST","BOOTH","BOOTY","BOOZE","BOOZY","BORAX","BORNE","BOSOM","BOSSY","BOTCH","BOUGH","BOULE","BOUND","BOWEL","BOXER","BRACE","BRAID","BRAIN","BRAKE","BRAND","BRASH","BRASS","BRAVE","BRAVO","BRAWL","BRAWN","BREAD","BREAK","BREED","BRIAR","BRIBE","BRICK","BRIDE","BRIEF","BRINE","BRING","BRINK","BRINY","BRISK","BROAD","BROIL","BROKE","BROOD","BROOK","BROOM","BROTH","BROWN","BRUNT","BRUSH","BRUTE","BUDDY","BUDGE","BUGGY","BUGLE","BUILD","BUILT","BULGE","BULKY","BULLY","BUNCH","BUNNY","BURLY","BURNT","BURST","BUSED","BUSHY","BUTCH","BUTTE","BUXOM","BUYER","BYLAW","CABAL","CABBY","CABIN","CABLE","CACAO","CACHE","CACTI","CADDY","CADET","CAGEY","CAIRN","CAMEL","CAMEO","CANAL","CANDY","CANNY","CANOE","CANON","CAPER","CAPUT","CARAT","CARGO","CAROL","CARRY","CARVE","CASTE","CATCH","CATER","CATTY","CAULK","CAUSE","CAVIL","CEASE","CEDAR","CELLO","CHAFE","CHAFF","CHAIN","CHAIR","CHALK","CHAMP","CHANT","CHAOS","CHARD","CHARM","CHART","CHASE","CHASM","CHEAP","CHEAT","CHECK","CHEEK","CHEER","CHESS","CHEST","CHICK","CHIDE","CHIEF","CHILD","CHILI","CHILL","CHIME","CHINA","CHIRP","CHOCK","CHOIR","CHOKE","CHORD","CHORE","CHOSE","CHUCK","CHUMP","CHUNK","CHURN","CHUTE","CIDER","CIGAR","CINCH","CIRCA","CIVIC","CIVIL","CLACK","CLAIM","CLAMP","CLANG","CLANK","CLASH","CLASP","CLASS","CLEAN","CLEAR","CLEAT","CLEFT","CLERK","CLICK","CLIFF","CLIMB","CLING","CLINK","CLOAK","CLOCK","CLONE","CLOSE","CLOTH","CLOUD","CLOUT","CLOVE","CLOWN","CLUCK","CLUED","CLUMP","CLUNG","COACH","COAST","COBRA","COCOA","COLON","COLOR","COMET","COMFY","COMIC","COMMA","CONCH","CONDO","CONIC","COPSE","CORAL","CORER","CORNY","COUCH","COUGH","COULD","COUNT","COUPE","COURT","COVEN","COVER","COVET","COVEY","COWER","COYLY","CRACK","CRAFT","CRAMP","CRANE","CRANK","CRASH","CRASS","CRATE","CRAVE","CRAWL","CRAZE","CRAZY","CREAK","CREAM","CREDO","CREED","CREEK","CREEP","CREME","CREPE","CREPT","CRESS","CREST","CRICK","CRIED","CRIER","CRIME","CRIMP","CRISP","CROAK","CROCK","CRONE","CRONY","CROOK","CROSS","CROUP","CROWD","CROWN","CRUDE","CRUEL","CRUMB","CRUMP","CRUSH","CRUST","CRYPT","CUBIC","CUMIN","CURIO","CURLY","CURRY","CURSE","CURVE","CURVY","CUTIE","CYBER","CYCLE","CYNIC","DADDY","DAILY","DAIRY","DAISY","DALLY","DANCE","DANDY","DATUM","DAUNT","DEALT","DEATH","DEBAR","DEBIT","DEBUG","DEBUT","DECAL","DECAY","DECOR","DECOY","DECRY","DEFER","DEIGN","DEITY","DELAY","DELTA","DELVE","DEMON","DEMUR","DENIM","DENSE","DEPOT","DEPTH","DERBY","DETER","DETOX","DEUCE","DEVIL","DIARY","DICEY","DIGIT","DILLY","DIMLY","DINER","DINGO","DINGY","DIODE","DIRGE","DIRTY","DISCO","DITCH","DITTO","DITTY","DIVER","DIZZY","DODGE","DODGY","DOGMA","DOING","DOLLY","DONOR","DONUT","DOPEY","DOUBT","DOUGH","DOWDY","DOWEL","DOWNY","DOWRY","DOZEN","DRAFT","DRAIN","DRAKE","DRAMA","DRANK","DRAPE","DRAWL","DRAWN","DREAD","DREAM","DRESS","DRIED","DRIER","DRIFT","DRILL","DRINK","DRIVE","DROIT","DROLL","DRONE","DROOL","DROOP","DROSS","DROVE","DROWN","DRUID","DRUNK","DRYER","DRYLY","DUCHY","DULLY","DUMMY","DUMPY","DUNCE","DUSKY","DUSTY","DUTCH","DUVET","DWARF","DWELL","DWELT","DYING","EAGER","EAGLE","EARLY","EARTH","EASEL","EATEN","EATER","EBONY","ECLAT","EDICT","EDIFY","EERIE","EGRET","EIGHT","EJECT","EKING","ELATE","ELBOW","ELDER","ELECT","ELEGY","ELFIN","ELIDE","ELITE","ELOPE","ELUDE","EMAIL","EMBED","EMBER","EMCEE","EMPTY","ENACT","ENDOW","ENEMA","ENEMY","ENJOY","ENNUI","ENSUE","ENTER","ENTRY","ENVOY","EPOCH","EPOXY","EQUAL","EQUIP","ERASE","ERECT","ERODE","ERROR","ERUPT","ESSAY","ESTER","ETHER","ETHIC","ETHOS","ETUDE","EVADE","EVENT","EVERY","EVICT","EVOKE","EXACT","EXALT","EXCEL","EXERT","EXILE","EXIST","EXPEL","EXTOL","EXTRA","EXULT","EYING","FABLE","FACET","FAINT","FAIRY","FAITH","FALSE","FANCY","FANNY","FARCE","FATAL","FATTY","FAULT","FAUNA","FAVOR","FEAST","FECAL","FEIGN","FELLA","FELON","FEMME","FEMUR","FENCE","FERAL","FERRY","FETAL","FETCH","FETID","FETUS","FEVER","FEWER","FIBER","FIBRE","FICUS","FIELD","FIEND","FIERY","FIFTH","FIFTY","FIGHT","FILER","FILET","FILLY","FILMY","FILTH","FINAL","FINCH","FINER","FIRST","FISHY","FIXER","FIZZY","FJORD","FLACK","FLAIL","FLAIR","FLAKE","FLAKY","FLAME","FLANK","FLARE","FLASH","FLASK","FLECK","FLEET","FLESH","FLICK","FLIER","FLING","FLINT","FLIRT","FLOAT","FLOCK","FLOOD","FLOOR","FLORA","FLOSS","FLOUR","FLOUT","FLOWN","FLUFF","FLUID","FLUKE","FLUME","FLUNG","FLUNK","FLUSH","FLUTE","FLYER","FOAMY","FOCAL","FOCUS","FOGGY","FOIST","FOLIO","FOLLY","FORAY","FORCE","FORGE","FORGO","FORTE","FORTH","FORTY","FORUM","FOUND","FOYER","FRAIL","FRAME","FRANK","FRAUD","FREAK","FREED","FREER","FRESH","FRIAR","FRIED","FRILL","FRISK","FRITZ","FROCK","FROND","FRONT","FROST","FROTH","FROWN","FROZE","FRUIT","FUDGE","FUGUE","FULLY","FUNGI","FUNKY","FUNNY","FUROR","FURRY","FUSSY","FUZZY","GAFFE","GAILY","GAMER","GAMMA","GAMUT","GASSY","GAUDY","GAUGE","GAUNT","GAUZE","GAVEL","GAWKY","GAYER","GAYLY","GAZER","GECKO","GEEKY","GEESE","GENIE","GENRE","GHOST","GHOUL","GIANT","GIDDY","GIPSY","GIRLY","GIRTH","GIVEN","GIVER","GLADE","GLAND","GLARE","GLASS","GLAZE","GLEAM","GLEAN","GLIDE","GLINT","GLOAT","GLOBE","GLOOM","GLORY","GLOSS","GLOVE","GLYPH","GNASH","GNOME","GODLY","GOING","GOLEM","GOLLY","GONAD","GONER","GOODY","GOOEY","GOOFY","GOOSE","GORGE","GOUGE","GOURD","GRACE","GRADE","GRAFT","GRAIL","GRAIN","GRAND","GRANT","GRAPE","GRAPH","GRASP","GRASS","GRATE","GRAVE","GRAVY","GRAZE","GREAT","GREED","GREEN","GREET","GRIEF","GRILL","GRIME","GRIMY","GRIND","GRIPE","GROAN","GROIN","GROOM","GROPE","GROSS","GROUP","GROUT","GROVE","GROWL","GROWN","GRUEL","GRUFF","GRUNT","GUARD","GUAVA","GUESS","GUEST","GUIDE","GUILD","GUILE","GUILT","GUISE","GULCH","GULLY","GUMBO","GUMMY","GUPPY","GUSTO","GUSTY","GYPSY","HABIT","HAIRY","HALVE","HANDY","HAPPY","HARDY","HAREM","HARPY","HARRY","HARSH","HASTE","HASTY","HATCH","HATER","HAUNT","HAUTE","HAVEN","HAVOC","HAZEL","HEADY","HEARD","HEART","HEATH","HEAVE","HEAVY","HEDGE","HEFTY","HEIST","HELIX","HELLO","HENCE","HERON","HILLY","HINGE","HIPPO","HIPPY","HITCH","HOARD","HOBBY","HOIST","HOLLY","HOMER","HONEY","HONOR","HORDE","HORNY","HORSE","HOTEL","HOTLY","HOUND","HOUSE","HOVEL","HOVER","HOWDY","HUMAN","HUMID","HUMOR","HUMPH","HUMUS","HUNCH","HUNKY","HURRY","HUSKY","HUSSY","HUTCH","HYDRO","HYENA","HYMEN","HYPER","ICILY","ICING","IDEAL","IDIOM","IDIOT","IDLER","IDYLL","IGLOO","ILIAC","IMAGE","IMBUE","IMPEL","IMPLY","INANE","INBOX","INCUR","INDEX","INEPT","INERT","INFER","INGOT","INLAY","INLET","INNER","INPUT","INTER","INTRO","IONIC","IRATE","IRONY","ISLET","ISSUE","ITCHY","IVORY","JAUNT","JAZZY","JELLY","JERKY","JETTY","JEWEL","JIFFY","JOINT","JOIST","JOKER","JOLLY","JOUST","JUDGE","JUICE","JUICY","JUMBO","JUMPY","JUNTA","JUNTO","JUROR","KAPPA","KARMA","KAYAK","KEBAB","KHAKI","KINKY","KIOSK","KITTY","KNACK","KNAVE","KNEAD","KNEED","KNEEL","KNELT","KNIFE","KNOCK","KNOLL","KNOWN","KOALA","KRILL","LABEL","LABOR","LADEN","LADLE","LAGER","LANCE","LANKY","LAPEL","LAPSE","LARGE","LARVA","LASSO","LATCH","LATER","LATHE","LATTE","LAUGH","LAYER","LEACH","LEAFY","LEAKY","LEANT","LEAPT","LEARN","LEASE","LEASH","LEAST","LEAVE","LEDGE","LEECH","LEERY","LEFTY","LEGAL","LEGGY","LEMON","LEMUR","LEPER","LEVEL","LEVER","LIBEL","LIEGE","LIGHT","LIKEN","LILAC","LIMBO","LIMIT","LINEN","LINER","LINGO","LIPID","LITHE","LIVER","LIVID","LLAMA","LOAMY","LOATH","LOBBY","LOCAL","LOCUS","LODGE","LOFTY","LOGIC","LOGIN","LOOPY","LOOSE","LORRY","LOSER","LOUSE","LOUSY","LOVER","LOWER","LOWLY","LOYAL","LUCID","LUCKY","LUMEN","LUMPY","LUNAR","LUNCH","LUNGE","LUPUS","LURCH","LURID","LUSTY","LYING","LYMPH","LYNCH","LYRIC","MACAW","MACHO","MACRO","MADAM","MADLY","MAFIA","MAGIC","MAGMA","MAIZE","MAJOR","MAKER","MAMBO","MAMMA","MAMMY","MANGA","MANGE","MANGO","MANGY","MANIA","MANIC","MANLY","MANOR","MAPLE","MARCH","MARRY","MARSH","MASON","MASSE","MATCH","MATEY","MAUVE","MAXIM","MAYBE","MAYOR","MEALY","MEANT","MEATY","MECCA","MEDAL","MEDIA","MEDIC","MELEE","MELON","MERCY","MERGE","MERIT","MERRY","METAL","METER","METRO","MICRO","MIDGE","MIDST","MIGHT","MILKY","MIMIC","MINCE","MINER","MINIM","MINOR","MINTY","MINUS","MIRTH","MISER","MISSY","MOCHA","MODAL","MODEL","MODEM","MOGUL","MOIST","MOLAR","MOLDY","MONEY","MONTH","MOODY","MOOSE","MORAL","MORON","MORPH","MOSSY","MOTEL","MOTIF","MOTOR","MOTTO","MOULT","MOUND","MOUNT","MOURN","MOUSE","MOUTH","MOVER","MOVIE","MOWER","MUCKY","MUCUS","MUDDY","MULCH","MUMMY","MUNCH","MURAL","MURKY","MUSHY","MUSIC","MUSKY","MUSTY","MYRRH","NADIR","NAIVE","NANNY","NASAL","NASTY","NATAL","NAVAL","NAVEL","NEEDY","NEIGH","NERDY","NERVE","NEVER","NEWER","NEWLY","NICER","NICHE","NIECE","NIGHT","NINJA","NINNY","NINTH","NOBLE","NOBLY","NOISE","NOISY","NOMAD","NOOSE","NORTH","NOSEY","NOTCH","NOVEL","NUDGE","NURSE","NUTTY","NYLON","NYMPH","OAKEN","OBESE","OCCUR","OCEAN","OCTAL","OCTET","ODDER","ODDLY","OFFAL","OFFER","OFTEN","OLDEN","OLDER","OLIVE","OMBRE","OMEGA","ONION","ONSET","OPERA","OPINE","OPIUM","OPTIC","ORBIT","ORDER","ORGAN","OTHER","OTTER","OUGHT","OUNCE","OUTDO","OUTER","OUTGO","OVARY","OVATE","OVERT","OVINE","OVOID","OWING","OWNER","OXIDE","OZONE","PADDY","PAGAN","PAINT","PALER","PALSY","PANEL","PANIC","PANSY","PAPAL","PAPER","PARER","PARKA","PARRY","PARSE","PARTY","PASTA","PASTE","PASTY","PATCH","PATIO","PATSY","PATTY","PAUSE","PAYEE","PAYER","PEACE","PEACH","PEARL","PECAN","PEDAL","PENAL","PENCE","PENNE","PENNY","PERCH","PERIL","PERKY","PESKY","PESTO","PETAL","PETTY","PHASE","PHONE","PHONY","PHOTO","PIANO","PICKY","PIECE","PIETY","PIGGY","PILOT","PINCH","PINEY","PINKY","PINTO","PIPER","PIQUE","PITCH","PITHY","PIVOT","PIXEL","PIXIE","PIZZA","PLACE","PLAID","PLAIN","PLAIT","PLANE","PLANK","PLANT","PLATE","PLAZA","PLEAD","PLEAT","PLIED","PLIER","PLUCK","PLUMB","PLUME","PLUMP","PLUNK","PLUSH","POESY","POINT","POISE","POKER","POLAR","POLKA","POLYP","POOCH","POPPY","PORCH","POSER","POSIT","POSSE","POUCH","POUND","POUTY","POWER","PRANK","PRAWN","PREEN","PRESS","PRICE","PRICK","PRIDE","PRIED","PRIME","PRIMO","PRINT","PRIOR","PRISM","PRIVY","PRIZE","PROBE","PRONE","PRONG","PROOF","PROSE","PROUD","PROVE","PROWL","PROXY","PRUDE","PRUNE","PSALM","PUBIC","PUDGY","PUFFY","PULPY","PULSE","PUNCH","PUPAL","PUPIL","PUPPY","PUREE","PURER","PURGE","PURSE","PUSHY","PUTTY","PYGMY","QUACK","QUAIL","QUAKE","QUALM","QUARK","QUART","QUASH","QUASI","QUEEN","QUEER","QUELL","QUERY","QUEST","QUEUE","QUICK","QUIET","QUILL","QUILT","QUIRK","QUITE","QUOTA","QUOTE","QUOTH","RABBI","RABID","RACER","RADAR","RADII","RADIO","RAINY","RAISE","RAJAH","RALLY","RALPH","RAMEN","RANCH","RANDY","RANGE","RAPID","RARER","RASPY","RATIO","RATTY","RAVEN","RAYON","RAZOR","REACH","REACT","READY","REALM","REARM","REBAR","REBEL","REBUS","REBUT","RECAP","RECUR","RECUT","REEDY","REFER","REFIT","REGAL","REHAB","REIGN","RELAX","RELAY","RELIC","REMIT","RENAL","RENEW","REPAY","REPEL","REPLY","RERUN","RESET","RESIN","RETCH","RETRO","RETRY","REUSE","REVEL","REVUE","RHINO","RHYME","RIDER","RIDGE","RIFLE","RIGHT","RIGID","RIGOR","RINSE","RIPEN","RIPER","RISEN","RISER","RISKY","RIVAL","RIVER","RIVET","ROACH","ROAST","ROBIN","ROBOT","ROCKY","RODEO","ROGER","ROGUE","ROOMY","ROOST","ROTOR","ROUGE","ROUGH","ROUND","ROUSE","ROUTE","ROVER","ROWDY","ROWER","ROYAL","RUDDY","RUDER","RUGBY","RULER","RUMBA","RUMOR","RUPEE","RURAL","RUSTY","SADLY","SAFER","SAINT","SALAD","SALLY","SALON","SALSA","SALTY","SALVE","SALVO","SANDY","SANER","SAPPY","SASSY","SATIN","SATYR","SAUCE","SAUCY","SAUNA","SAUTE","SAVOR","SAVOY","SAVVY","SCALD","SCALE","SCALP","SCALY","SCAMP","SCANT","SCARE","SCARF","SCARY","SCENE","SCENT","SCION","SCOFF","SCOLD","SCONE","SCOOP","SCOPE","SCORE","SCORN","SCOUR","SCOUT","SCOWL","SCRAM","SCRAP","SCREE","SCREW","SCRUB","SCRUM","SCUBA","SEDAN","SEEDY","SEGUE","SEIZE","SEMEN","SENSE","SEPIA","SERIF","SERUM","SERVE","SETUP","SEVEN","SEVER","SEWER","SHACK","SHADE","SHADY","SHAFT","SHAKE","SHAKY","SHALE","SHALL","SHALT","SHAME","SHANK","SHAPE","SHARD","SHARE","SHARK","SHARP","SHAVE","SHAWL","SHEAR","SHEEN","SHEEP","SHEER","SHEET","SHEIK","SHELF","SHELL","SHIED","SHIFT","SHINE","SHINY","SHIRE","SHIRK","SHIRT","SHOAL","SHOCK","SHONE","SHOOK","SHOOT","SHORE","SHORN","SHORT","SHOUT","SHOVE","SHOWN","SHOWY","SHREW","SHRUB","SHRUG","SHUCK","SHUNT","SHUSH","SHYLY","SIEGE","SIEVE","SIGHT","SIGMA","SILKY","SILLY","SINCE","SINEW","SINGE","SIREN","SISSY","SIXTH","SIXTY","SKATE","SKIER","SKIFF","SKILL","SKIMP","SKIRT","SKULK","SKULL","SKUNK","SLACK","SLAIN","SLANG","SLANT","SLASH","SLATE","SLAVE","SLEEK","SLEEP","SLEET","SLEPT","SLICE","SLICK","SLIDE","SLIME","SLIMY","SLING","SLINK","SLOOP","SLOPE","SLOSH","SLOTH","SLUMP","SLUNG","SLUNK","SLURP","SLUSH","SLYLY","SMACK","SMALL","SMART","SMASH","SMEAR","SMELL","SMELT","SMILE","SMIRK","SMITE","SMITH","SMOCK","SMOKE","SMOKY","SMOTE","SNACK","SNAIL","SNAKE","SNAKY","SNARE","SNARL","SNEAK","SNEER","SNIDE","SNIFF","SNIPE","SNOOP","SNORE","SNORT","SNOUT","SNOWY","SNUCK","SNUFF","SOAPY","SOBER","SOGGY","SOLAR","SOLID","SOLVE","SONAR","SONIC","SOOTH","SOOTY","SORRY","SOUND","SOUTH","SOWER","SPACE","SPADE","SPANK","SPARE","SPARK","SPASM","SPAWN","SPEAK","SPEAR","SPECK","SPEED","SPELL","SPELT","SPEND","SPENT","SPERM","SPICE","SPICY","SPIED","SPIEL","SPIKE","SPIKY","SPILL","SPILT","SPINE","SPINY","SPIRE","SPITE","SPLAT","SPLIT","SPOIL","SPOKE","SPOOF","SPOOK","SPOOL","SPOON","SPORE","SPORT","SPOUT","SPRAY","SPREE","SPRIG","SPUNK","SPURN","SPURT","SQUAD","SQUAT","SQUIB","STACK","STAFF","STAGE","STAID","STAIN","STAIR","STAKE","STALE","STALK","STALL","STAMP","STAND","STANK","STARE","STARK","START","STASH","STATE","STAVE","STEAD","STEAK","STEAL","STEAM","STEED","STEEL","STEEP","STEER","STEIN","STERN","STICK","STIFF","STILL","STILT","STING","STINK","STINT","STOCK","STOIC","STOKE","STOLE","STOMP","STONE","STONY","STOOD","STOOL","STOOP","STORE","STORK","STORM","STORY","STOUT","STOVE","STRAP","STRAW","STRAY","STRIP","STRUT","STUCK","STUDY","STUFF","STUMP","STUNG","STUNK","STUNT","STYLE","SUAVE","SUGAR","SUING","SUITE","SULKY","SULLY","SUMAC","SUNNY","SUPER","SURER","SURGE","SURLY","SUSHI","SWAMI","SWAMP","SWARM","SWASH","SWATH","SWEAR","SWEAT","SWEEP","SWEET","SWELL","SWEPT","SWIFT","SWILL","SWINE","SWING","SWIRL","SWISH","SWOON","SWOOP","SWORD","SWORE","SWORN","SWUNG","SYNOD","SYRUP","TABBY","TABLE","TABOO","TACIT","TACKY","TAFFY","TAINT","TAKEN","TAKER","TALLY","TALON","TAMER","TANGO","TANGY","TAPER","TAPIR","TARDY","TAROT","TASTE","TASTY","TATTY","TAUNT","TAWNY","TEACH","TEARY","TEASE","TEDDY","TEETH","TEMPO","TENET","TENOR","TENSE","TENTH","TEPEE","TEPID","TERRA","TERSE","TESTY","THANK","THEFT","THEIR","THEME","THERE","THESE","THETA","THICK","THIEF","THIGH","THING","THINK","THIRD","THONG","THORN","THOSE","THREE","THREW","THROB","THROW","THRUM","THUMB","THUMP","THYME","TIARA","TIBIA","TIDAL","TIGER","TIGHT","TILDE","TIMER","TIMID","TIPSY","TITAN","TITHE","TITLE","TOAST","TODAY","TODDY","TOKEN","TONAL","TONGA","TONIC","TOOTH","TOPAZ","TOPIC","TORCH","TORSO","TORUS","TOTAL","TOTEM","TOUCH","TOUGH","TOWEL","TOWER","TOXIC","TOXIN","TRACE","TRACK","TRACT","TRADE","TRAIL","TRAIN","TRAIT","TRAMP","TRASH","TRAWL","TREAD","TREAT","TREND","TRIAD","TRIAL","TRIBE","TRICE","TRICK","TRIED","TRIPE","TRITE","TROLL","TROOP","TROPE","TROUT","TROVE","TRUCE","TRUCK","TRUER","TRULY","TRUMP","TRUNK","TRUSS","TRUST","TRUTH","TRYST","TUBAL","TUBER","TULIP","TULLE","TUMOR","TUNIC","TURBO","TUTOR","TWANG","TWEAK","TWEED","TWEET","TWICE","TWINE","TWIRL","TWIST","TWIXT","TYING","UDDER","ULCER","ULTRA","UMBRA","UNCLE","UNCUT","UNDER","UNDID","UNDUE","UNFED","UNFIT","UNIFY","UNION","UNITE","UNITY","UNLIT","UNMET","UNSET","UNTIE","UNTIL","UNWED","UNZIP","UPPER","UPSET","URBAN","URINE","USAGE","USHER","USING","USUAL","USURP","UTILE","UTTER","VAGUE","VALET","VALID","VALOR","VALUE","VALVE","VAPID","VAPOR","VAULT","VAUNT","VEGAN","VENOM","VENUE","VERGE","VERSE","VERSO","VERVE","VICAR","VIDEO","VIGIL","VIGOR","VILLA","VINYL","VIOLA","VIPER","VIRAL","VIRUS","VISIT","VISOR","VISTA","VITAL","VIVID","VIXEN","VOCAL","VODKA","VOGUE","VOICE","VOILA","VOMIT","VOTER","VOUCH","VOWEL","VYING","WACKY","WAFER","WAGER","WAGON","WAIST","WAIVE","WALTZ","WARTY","WASTE","WATCH","WATER","WAVER","WAXEN","WEARY","WEAVE","WEDGE","WEEDY","WEIGH","WEIRD","WELCH","WELSH","WENCH","WHACK","WHALE","WHARF","WHEAT","WHEEL","WHELP","WHERE","WHICH","WHIFF","WHILE","WHINE","WHINY","WHIRL","WHISK","WHITE","WHOLE","WHOOP","WHOSE","WIDEN","WIDER","WIDOW","WIDTH","WIELD","WIGHT","WILLY","WIMPY","WINCE","WINCH","WINDY","WISER","WISPY","WITCH","WITTY","WOKEN","WOMAN","WOMEN","WOODY","WOOER","WOOLY","WOOZY","WORDY","WORLD","WORRY","WORSE","WORST","WORTH","WOULD","WOUND","WOVEN","WRACK","WRATH","WREAK","WRECK","WREST","WRING","WRIST","WRITE","WRONG","WROTE","WRUNG","WRYLY","YACHT","YEARN","YEAST","YIELD","YOUNG","YOUTH","ZEBRA","ZESTY","ZONAL"];
@@ -460,13 +814,13 @@ function ensureTimerStarted() {
 function toggleTimer() {
     showTimer = !showTimer;
     document.body.classList.toggle('timer-on', showTimer);
-    try { localStorage.setItem('octordle_show_timer', showTimer ? '1' : '0'); } catch(e) {}
+    try { localStorage.setItem(pk('show_timer'), showTimer ? '1' : '0'); } catch(e) {}
     syncSettingsUI();
     // If a game is already in progress with a running clock, keep ticking
     if (showTimer && gameStartTime != null && !isGameOver) startTimerTick();
 }
 // ---------- Game state persistence ----------
-function saveKey() { return 'octordle_state_' + currentMode; }
+function saveKey() { return pk('state_' + currentMode); }
 function saveGame() {
     try {
         const data = {
@@ -549,10 +903,11 @@ function init() {
     if (gameStartTime != null && !isGameOver) startTimerTick();
     updateTimerDisplay();
     window.scrollTo(0, 0);
+    document.getElementById('player-chip-name').textContent = currentProfileName();
     // First-visit intro
-    if (!localStorage.getItem('octordle_intro_seen')) {
+    if (!localStorage.getItem(pk('intro_seen'))) {
         setTimeout(openIntro, 200);
-        try { localStorage.setItem('octordle_intro_seen', '1'); } catch(e) {}
+        try { localStorage.setItem(pk('intro_seen'), '1'); } catch(e) {}
     }
 }
 function repaintFromSavedState() {
@@ -615,13 +970,15 @@ function buildKeyboard() {
     });
 }
 function handleInput(key) {
+    if (mpRole === 'viewer') return; // spectators can't type
     if (isGameOver || isSubmitting) return;
     if (key === "ENTER") { if (currentGuess.length === 5) validateAndSubmit(); }
-    else if (key === "DEL" || key === "BACKSPACE") { currentGuess = currentGuess.slice(0,-1); updateView(); }
+    else if (key === "DEL" || key === "BACKSPACE") { currentGuess = currentGuess.slice(0,-1); updateView(); scheduleBroadcast(); }
     else if (currentGuess.length < 5 && /^[A-Z]$/.test(key.toUpperCase())) {
         ensureTimerStarted();
         currentGuess += key.toUpperCase();
         updateView();
+        scheduleBroadcast();
     }
 }
 function validateAndSubmit() { if (!VALID_GUESSES.has(currentGuess)) { showShake(); return; } submitGuess(); }
@@ -690,6 +1047,7 @@ function submitGuess() {
     setTimeout(() => {
         guesses.push(currentGuess); currentGuess = ""; updateCounter();
         updateActiveRow();
+        scheduleBroadcast();
         // Screen-reader announcement
         const solvedCount = solved.filter(s => s).length;
         announce(`Guess submitted. ${solvedCount} of 8 boards solved.`);
@@ -715,6 +1073,7 @@ function updateKeyVisuals(char, boardIdx, state) {
     }
 }
 function endGame(win) {
+    if (mpRole === 'viewer') return; // viewers never invoke endGame themselves
     isGameOver = true;
     lastWinGuess = win ? guesses.length : null;
     // Capture final elapsed time (if the timer ever started)
@@ -726,6 +1085,7 @@ function endGame(win) {
     recordResult(currentMode, win, guesses.length, maxGuesses, win ? finalElapsedMs : null);
     if (isDailyMode(currentMode)) saveGame();
     else clearSavedGame();
+    scheduleBroadcast();
     showEndGameModal(win, false);
 }
 function showEndGameModal(win, fromRestore) {
@@ -846,6 +1206,90 @@ function announce(msg) {
     const live = document.getElementById('sr-live');
     if (live) live.textContent = msg;
 }
+// ---------- Players ----------
+function openPlayers() { renderPlayerList(); document.getElementById('players-modal').style.display = 'flex'; }
+function closePlayers() { document.getElementById('players-modal').style.display = 'none'; }
+function renderPlayerList() {
+    const list = document.getElementById('player-list');
+    list.innerHTML = '';
+    const profiles = loadProfiles();
+    profiles.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'player-row' + (p.id === currentProfileId ? ' current' : '');
+        const isCurrent = p.id === currentProfileId;
+        const check = isCurrent ? '✓ ' : '';
+        row.innerHTML = `
+            <div class="player-name">${check}${escapeHtml(p.name)}</div>
+            <div class="player-actions">
+                ${!isCurrent ? '<button class="player-action-btn" data-act="switch">SWITCH</button>' : ''}
+                <button class="player-action-btn" data-act="rename">RENAME</button>
+                ${profiles.length > 1 ? '<button class="player-action-btn danger" data-act="delete">DELETE</button>' : ''}
+            </div>`;
+        row.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const act = btn.getAttribute('data-act');
+                if (act === 'switch') switchToProfile(p.id);
+                else if (act === 'rename') renameProfile(p.id);
+                else if (act === 'delete') deleteProfile(p.id);
+            });
+        });
+        list.appendChild(row);
+    });
+}
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function addPlayerPrompt() {
+    const name = (prompt('New player name:') || '').trim();
+    if (!name) return;
+    if (name.length > 40) return showToast('Name too long (max 40)', 2500);
+    const profiles = loadProfiles();
+    const id = newProfileId(profiles);
+    profiles.push({ id, name });
+    saveProfiles(profiles);
+    switchToProfile(id);
+}
+function renameProfile(id) {
+    const profiles = loadProfiles();
+    const p = profiles.find(x => x.id === id);
+    if (!p) return;
+    const name = (prompt('Rename player:', p.name) || '').trim();
+    if (!name || name === p.name) return;
+    if (name.length > 40) return showToast('Name too long (max 40)', 2500);
+    p.name = name;
+    saveProfiles(profiles);
+    renderPlayerList();
+    if (id === currentProfileId) document.getElementById('player-chip-name').textContent = name;
+}
+function deleteProfile(id) {
+    const profiles = loadProfiles();
+    if (profiles.length <= 1) return showToast('Need at least one player', 2500);
+    const p = profiles.find(x => x.id === id);
+    if (!p) return;
+    if (!confirm(`Delete player "${p.name}" and all their stats/saves? This cannot be undone.`)) return;
+    // Remove all per-profile keys
+    const prefix = 'octordle_p_' + id + '_';
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(prefix)) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+    const remaining = profiles.filter(x => x.id !== id);
+    saveProfiles(remaining);
+    if (id === currentProfileId) {
+        localStorage.setItem('octordle_current_profile', remaining[0].id);
+        location.reload();
+    } else {
+        renderPlayerList();
+    }
+}
+function switchToProfile(id) {
+    if (id === currentProfileId) return;
+    localStorage.setItem('octordle_current_profile', id);
+    location.reload();
+}
 // ---------- Intro & Settings ----------
 function openIntro() { document.getElementById('intro-modal').style.display = 'flex'; }
 function closeIntro() { document.getElementById('intro-modal').style.display = 'none'; }
@@ -862,21 +1306,21 @@ function syncSettingsUI() {
 function toggleColorblind() {
     isColorblind = !isColorblind;
     document.body.classList.toggle('colorblind', isColorblind);
-    try { localStorage.setItem('octordle_colorblind', isColorblind ? '1' : '0'); } catch(e) {}
+    try { localStorage.setItem(pk('colorblind'), isColorblind ? '1' : '0'); } catch(e) {}
     syncSettingsUI();
 }
 function toggleMotion() {
     reducedMotion = !reducedMotion;
-    try { localStorage.setItem('octordle_reduced_motion', reducedMotion ? '1' : '0'); } catch(e) {}
+    try { localStorage.setItem(pk('reduced_motion'), reducedMotion ? '1' : '0'); } catch(e) {}
     syncSettingsUI();
 }
 function applyAccessibilityPrefs() {
     try {
-        isColorblind = localStorage.getItem('octordle_colorblind') === '1';
+        isColorblind = localStorage.getItem(pk('colorblind')) === '1';
         // Only honor explicit user setting — don't auto-disable based on OS preference,
         // since fireworks/flips are short celebratory effects most players want by default.
-        reducedMotion = localStorage.getItem('octordle_reduced_motion') === '1';
-        showTimer = localStorage.getItem('octordle_show_timer') === '1';
+        reducedMotion = localStorage.getItem(pk('reduced_motion')) === '1';
+        showTimer = localStorage.getItem(pk('show_timer')) === '1';
     } catch(e) {}
     if (isColorblind) document.body.classList.add('colorblind');
     if (showTimer) document.body.classList.add('timer-on');
@@ -885,13 +1329,13 @@ function applyAccessibilityPrefs() {
 function getStats(mode) {
     const def = { played:0, wins:0, streak:0, maxStreak:0, dist:{}, bestTime:null };
     try {
-        const s = JSON.parse(localStorage.getItem('octordle_stats_'+mode)) || def;
+        const s = JSON.parse(localStorage.getItem(pk('stats_'+mode))) || def;
         if (s.bestTime === undefined) s.bestTime = null; // migrate older saves
         return s;
     } catch(e) { return def; }
 }
 function saveStats(mode, s) {
-    try { localStorage.setItem('octordle_stats_'+mode, JSON.stringify(s)); } catch(e) {}
+    try { localStorage.setItem(pk('stats_'+mode), JSON.stringify(s)); } catch(e) {}
 }
 let statsRecorded = false;
 let isNewBestTime = false;      // set true when this win beat the previous best
@@ -921,14 +1365,14 @@ function recordResult(mode, win, guessCount, maxG, elapsedMs) {
 function resetStatsForCurrentTab() {
     const label = friendlyMode(statsTab);
     if (!confirm(`Reset ${label} stats? Played count, win %, streaks and guess distribution will be wiped. This cannot be undone.`)) return;
-    try { localStorage.removeItem('octordle_stats_' + statsTab); } catch(e) {}
+    try { localStorage.removeItem(pk('stats_' + statsTab)); } catch(e) {}
     renderStats(statsTab);
     showToast(label + ' stats reset');
 }
 function resetAllStats() {
     if (!confirm('Reset stats for ALL modes? Every mode’s played count, win %, streaks and guess distribution will be wiped. This cannot be undone.')) return;
     try {
-        Object.keys(MODE_GUESSES).forEach(m => localStorage.removeItem('octordle_stats_' + m));
+        Object.keys(MODE_GUESSES).forEach(m => localStorage.removeItem(pk('stats_' + m)));
     } catch(e) {}
     renderStats(statsTab);
     showToast('All stats reset');
@@ -1036,6 +1480,29 @@ init();
             </div>
             <button class="icon-btn" onclick="closeSettings();openIntro();">OPEN</button>
         </div>
+    </div>
+</div>
+<div id="mp-modal" role="dialog" aria-modal="true" aria-labelledby="mp-title" onclick="if(event.target===this)closeMultiplayer()">
+    <div class="mp-content">
+        <button class="stats-close" onclick="closeMultiplayer()" aria-label="Close">✕</button>
+        <h2 id="mp-title">MULTIPLAYER</h2>
+        <p class="subtitle">SAME ROOM · ONE TYPIST · MANY VIEWERS</p>
+        <div id="mp-body">
+            <p class="mp-hint">One person hosts and plays. Others join with the code and watch in real time on their own devices.</p>
+            <div class="mp-choice">
+                <button class="host-btn" onclick="startHosting()">HOST</button>
+                <button class="join-btn" onclick="showJoinInput()">JOIN</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="players-modal" role="dialog" aria-modal="true" aria-labelledby="players-title" onclick="if(event.target===this)closePlayers()">
+    <div class="players-content">
+        <button class="stats-close" onclick="closePlayers()" aria-label="Close">✕</button>
+        <h2 id="players-title">PLAYERS</h2>
+        <p style="text-align:center;font-size:0.7rem;color:#888;margin:0 0 4px;letter-spacing:0.5px;">LOCAL PROFILES ON THIS DEVICE · NO ACCOUNTS</p>
+        <div id="player-list" class="player-list"></div>
+        <button class="player-add" onclick="addPlayerPrompt()">+ NEW PLAYER</button>
     </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
