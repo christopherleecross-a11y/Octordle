@@ -779,6 +779,15 @@ function fmtTime(ms) {
     const sec = totalSec % 60;
     return min + ':' + String(sec).padStart(2, '0');
 }
+// Same as fmtTime but includes hundredths of a second — used for final/best times.
+function fmtTimePrecise(ms) {
+    if (ms == null) return '—';
+    const totalMs = Math.max(0, Math.round(ms));
+    const min = Math.floor(totalMs / 60000);
+    const sec = Math.floor((totalMs % 60000) / 1000);
+    const cs = Math.floor((totalMs % 1000) / 10);
+    return min + ':' + String(sec).padStart(2, '0') + '.' + String(cs).padStart(2, '0');
+}
 function updateTimerDisplay() {
     const el = document.getElementById('timer-display');
     if (!el) return;
@@ -1118,11 +1127,11 @@ function showEndGameModal(win, fromRestore) {
             const isFirstEver = previousBestTime == null;
             const headline = isFirstEver ? '🏆 First Recorded Time!' : '🏆 New Best Time!';
             const detail = isFirstEver
-                ? `${fmtTime(finalElapsedMs)} · ${friendlyMode(currentMode)}`
-                : `${fmtTime(finalElapsedMs)} · beat previous ${fmtTime(previousBestTime)}`;
+                ? `${fmtTimePrecise(finalElapsedMs)} · ${friendlyMode(currentMode)}`
+                : `${fmtTimePrecise(finalElapsedMs)} · beat previous ${fmtTimePrecise(previousBestTime)}`;
             badge.innerHTML = `<div class="bt-headline">${headline}</div><div class="bt-detail">${detail}</div>`;
             badge.style.display = 'block';
-            announce(isFirstEver ? 'First recorded time.' : `New best time. ${fmtTime(finalElapsedMs)}, beating previous ${fmtTime(previousBestTime)}.`);
+            announce(isFirstEver ? 'First recorded time.' : `New best time. ${fmtTimePrecise(finalElapsedMs)}, beating previous ${fmtTimePrecise(previousBestTime)}.`);
         } else {
             badge.style.display = 'none';
         }
@@ -1231,9 +1240,9 @@ function shareResults() {
     lines.push('');
     if (won) {
         if (isNewBestTime && finalElapsedMs != null) {
-            lines.push(`🏆 NEW BEST TIME: ${fmtTime(finalElapsedMs)}`);
+            lines.push(`🏆 NEW BEST TIME: ${fmtTimePrecise(finalElapsedMs)}`);
         } else if (finalElapsedMs != null) {
-            lines.push(`⏱ Time: ${fmtTime(finalElapsedMs)}`);
+            lines.push(`⏱ Time: ${fmtTimePrecise(finalElapsedMs)}`);
         }
         if (stats.streak > 1) lines.push(`🔥 Win streak: ${stats.streak}`);
         else if (stats.streak === 1) lines.push(`🌱 New streak started`);
@@ -1461,7 +1470,7 @@ function renderStats(mode) {
         totalWins += v;
     }
     document.getElementById('s-avg').textContent = totalWins ? (totalGuesses / totalWins).toFixed(1) : '—';
-    document.getElementById('s-best').textContent = fmtTime(s.bestTime);
+    document.getElementById('s-best').textContent = fmtTimePrecise(s.bestTime);
     const maxG = MODE_GUESSES[mode];
     const maxVal = Math.max(1, ...Object.values(s.dist));
     const bars = document.getElementById('dist-bars');
