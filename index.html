@@ -363,6 +363,7 @@
 <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:2000;">
     <div class="modal-content">
         <h2 id="modal-title" style="color:#ffffff;"></h2>
+        <div id="modal-time-display" style="display:none;font-family:'Menlo',monospace;font-size:1.1rem;color:#ddd;margin:6px 0 4px;letter-spacing:1px;"></div>
         <div id="best-time-badge" style="display:none;"></div>
         <div id="daily-complete-msg" style="display:none;color:#aaa;font-size:0.85rem;margin:8px 0;">Come back tomorrow for a new daily challenge.</div>
         <div id="answers-container" style="display:none;">
@@ -1121,6 +1122,14 @@ function showEndGameModal(win, fromRestore) {
         document.getElementById('answers-container').style.display = "none";
         document.getElementById('ans-list').innerHTML = '';
         document.getElementById('daily-complete-msg').style.display = isDailyMode(currentMode) ? 'block' : 'none';
+        // Show the completion time when the player has the timer enabled
+        const timeEl = document.getElementById('modal-time-display');
+        if (showTimer && finalElapsedMs != null) {
+            timeEl.textContent = '⏱ ' + fmtTimePrecise(finalElapsedMs);
+            timeEl.style.display = 'block';
+        } else {
+            timeEl.style.display = 'none';
+        }
         // Best-time badge — only when we just achieved it this game (not on restore)
         const badge = document.getElementById('best-time-badge');
         if (win && !fromRestore && isNewBestTime && finalElapsedMs != null) {
